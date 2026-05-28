@@ -12,7 +12,9 @@ license = { text = "Proprietary" }
 authors = [
     { name = "Kevin Valkenhoff", email = "kevinvalkenhoff@gmail.com" },
 ]
-dependencies = []
+dependencies = [
+    "requests>=2.31",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]

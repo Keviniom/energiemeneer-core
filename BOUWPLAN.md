@@ -132,7 +132,7 @@ Push naar GitHub als een module af en getest is.
 Vink af wat klaar is (laat Claude Code dit updaten):
 
 - [x] Module 1 — storage  *(commit 5b3dd68, 9/9 tests groen)*
-- [ ] Module 2 — bag
+- [x] Module 2 — bag  *(12/12 tests groen; zoek_adres + vrij_zoeken + normaliseer_postcode)*
 - [ ] Module 3 — ep_online
 - [ ] Module 4 — prijs
 - [ ] Module 5 — graph_auth
