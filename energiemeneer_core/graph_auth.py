@@ -215,6 +215,18 @@ def voltooi_device_login(
     return False
 
 
+def vergeet_access_token() -> None:
+    """Vergeet het gecachte access-token, zodat de volgende aanvraag een
+    vers token ophaalt.
+
+    Gebruikt door ``graph_api`` als Microsoft midden in een aanroep een
+    ``401`` geeft (token net verlopen): dan eerst vergeten, vers token halen
+    en de aanroep één keer opnieuw proberen.
+    """
+    _access_cache["token"] = None
+    _access_cache["verloopt_op"] = 0.0
+
+
 # ── Verversen ──────────────────────────────────────────────────────────────────
 
 

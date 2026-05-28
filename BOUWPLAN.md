@@ -136,5 +136,10 @@ Vink af wat klaar is (laat Claude Code dit updaten):
 - [x] Module 3 — ep_online  *(10/10 tests groen; zoek_op_vbo + zoek_op_adres)*
 - [x] Module 4 — prijs  *(31/31 tests groen; bereken_prijs incl. spoedtoeslag en maatwerk)*
 - [x] Module 5 — graph_auth  *(13/13 tests groen; public client, refresh-rotatie in token_persist.json, ntfy-noodmelding met 24u-rem)*
-- [ ] Module 6 — graph_api
+- [ ] Module 6 — graph_api  *(in onderdelen)*
+  - [x] 1. agenda  *(15/15 tests groen; generieke CRUD + gedeeld _client-loket met 401-herstel)*
+  - [ ] 2. mail
+  - [ ] 3. onedrive
+  - [ ] 4. todo
+  - [ ] 5. onenote
 - [ ] Module 7 — agenda_format

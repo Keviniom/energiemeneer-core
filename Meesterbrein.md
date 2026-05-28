@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.3 |
+| **Versie** | 4.4 |
 | **Laatst bijgewerkt** | 28 mei 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -47,12 +47,12 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 | 3. ep_online | ✅ Klaar | Label-status via VBO of adres. 10/10 tests groen. |
 | 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
 | 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
-| 6. graph_api | ⏳ Volgende | Agenda, To Do, Mail, OneDrive, OneNote. |
+| 6. graph_api | 🔧 Mee bezig | In onderdelen. ✅ agenda (generieke CRUD + gedeeld _client-loket, 15/15). Nog: mail, onedrive, todo, onenote. |
 | 7. agenda_format | ⬜ Nog niet | Vaste Outlook-opmaak. |
 
 **Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
 
-**Volgende stap:** Module 6 (graph_api) bouwen — agenda, To Do, mail, OneDrive en OneNote bovenop de nu werkende graph_auth. Start Claude Code in de map en zeg "lees Meesterbrein.md en BOUWPLAN.md, we doen module 6".
+**Volgende stap:** Module 6 (graph_api) verder bouwen — onderdeel 1 (agenda) is klaar. Volgende onderdelen op volgorde: mail, OneDrive, To Do, OneNote. Elk onderdeel apart bouwen → testen → committen.
 
 # 1. Visie en hoofddoel
 
@@ -406,5 +406,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.1 | 28 mei 2026 | Bestandsnaam vastgezet op `Meesterbrein.md` (geen versienummer meer in de naam). Versiebeheer-instructie toegevoegd. |
 | 4.2 | 28 mei 2026 | Bouwstatus-sectie (H0a) toegevoegd: core-modules 1–4 klaar en getest, module 5 (graph_auth) is de volgende. Versiebeheer-instructie aangescherpt voor toekomstige chats. |
 | 4.3 | 28 mei 2026 | Module 5 (graph_auth) klaar en getest (13/13): public client, refresh-rotatie in token_persist.json, onafhankelijke ntfy-noodmelding bij verlopen koppeling (max. 1×/24u). Bouwstatus bijgewerkt; module 6 (graph_api) is nu de volgende. |
+| 4.4 | 29 mei 2026 | Module 6 (graph_api) opgezet als subpackage (bestand per onderwerp) met gedeeld _client-loket (token via graph_auth + 401-herstel). Onderdeel 1 agenda klaar en getest (15/15): generieke afspraak-CRUD, opmaak bewust uitgesteld naar Module 7. Volgende onderdelen: mail, onedrive, todo, onenote. |
 
 *— Einde document —*
