@@ -140,6 +140,6 @@ Vink af wat klaar is (laat Claude Code dit updaten):
   - [x] 1. agenda  *(15/15 tests groen; generieke CRUD + gedeeld _client-loket met 401-herstel)*
   - [x] 2. mail  *(6/6 tests groen; generieke stuur_mail met cc/bcc/reply-to, één adres of lijst)*
   - [x] 3. onedrive  *(11/11 tests groen; generieke maak_map met _1/_2-logica + upload_bestand met grote-bestand-sessie >4MB)*
-  - [ ] 4. todo
+  - [x] 4. todo  *(7/7 tests groen; generieke maak_taak met lijst zoeken/aanmaken + _1/_2-logica + optionele deadline)*
   - [ ] 5. onenote
 - [ ] Module 7 — agenda_format
