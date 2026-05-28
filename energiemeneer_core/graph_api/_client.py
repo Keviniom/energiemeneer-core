@@ -36,14 +36,18 @@ def verzoek(
     *,
     params: dict[str, Any] | None = None,
     json: Any = None,
+    data: bytes | None = None,
     headers_extra: dict[str, str] | None = None,
     timeout: int = 15,
 ) -> requests.Response:
     """Doe één Graph-aanroep met automatisch token + 401-herstel.
 
     Args:
-        methode: ``GET`` / ``POST`` / ``PATCH`` / ``DELETE``.
+        methode: ``GET`` / ``POST`` / ``PATCH`` / ``DELETE`` / ``PUT``.
         pad: pad ná de Graph-basis, bijv. ``/me/events``.
+        json: JSON-body (voor de meeste aanroepen).
+        data: rauwe bytes-body (voor bestand-uploads); geef dan zelf de
+            juiste ``Content-Type`` mee via ``headers_extra``.
 
     Raises:
         RuntimeError: Microsoft Graph is niet bereikbaar.
@@ -58,6 +62,7 @@ def verzoek(
                 headers=_headers(token, headers_extra),
                 params=params,
                 json=json,
+                data=data,
                 timeout=timeout,
             )
         except requests.RequestException as e:
@@ -87,3 +92,10 @@ def patch(pad: str, *, json=None, headers_extra=None) -> requests.Response:
 
 def delete(pad: str, *, headers_extra=None) -> requests.Response:
     return verzoek("DELETE", pad, headers_extra=headers_extra)
+
+
+def put_inhoud(
+    pad: str, inhoud: bytes, content_type: str = "application/octet-stream"
+) -> requests.Response:
+    """PUT met rauwe bytes-body (voor het uploaden van bestandsinhoud)."""
+    return verzoek("PUT", pad, data=inhoud, headers_extra={"Content-Type": content_type})

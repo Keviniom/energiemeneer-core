@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.5 |
+| **Versie** | 4.6 |
 | **Laatst bijgewerkt** | 28 mei 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -47,12 +47,17 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 | 3. ep_online | ✅ Klaar | Label-status via VBO of adres. 10/10 tests groen. |
 | 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
 | 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
-| 6. graph_api | 🔧 Mee bezig | In onderdelen. ✅ agenda (CRUD + gedeeld _client-loket), ✅ mail (generiek versturen). Nog: onedrive, todo, onenote. |
+| 6. graph_api | 🔧 Mee bezig | In onderdelen. ✅ agenda, ✅ mail, ✅ onedrive (map + upload, incl. grote bestanden). Nog: todo, onenote. |
 | 7. agenda_format | ⬜ Nog niet | Vaste Outlook-opmaak. |
 
 **Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
 
-**Volgende stap:** Module 6 (graph_api) verder bouwen — agenda + mail klaar. Volgende onderdelen op volgorde: OneDrive, To Do, OneNote. Elk onderdeel apart bouwen → testen → committen. (Later, voor Job B/Uploadtool: mail lézen + bijlagen ophalen — bron is outlook_handler.py.)
+**Volgende stap:** Module 6 (graph_api) verder bouwen — agenda + mail + onedrive klaar. Volgende onderdelen op volgorde: To Do, OneNote. Elk onderdeel apart bouwen → testen → committen.
+
+**Aantekeningen voor later (consolidatie):**
+- Mail lézen + bijlagen ophalen (voor Job B/Uploadtool) — bron is `outlook_handler.py`.
+- Vaste mapnaam-template "straat huisnr, woonplaats" hoort in een aparte format-module (bijv. `dossier_format`), niet in module 6.
+- Foto-resize-logica uit de oude Uploadtool moet een nette plek krijgen (mogelijk `core/foto` of als hulpfunctie in de Upload-module).
 
 # 1. Visie en hoofddoel
 
@@ -408,5 +413,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.3 | 28 mei 2026 | Module 5 (graph_auth) klaar en getest (13/13): public client, refresh-rotatie in token_persist.json, onafhankelijke ntfy-noodmelding bij verlopen koppeling (max. 1×/24u). Bouwstatus bijgewerkt; module 6 (graph_api) is nu de volgende. |
 | 4.4 | 29 mei 2026 | Module 6 (graph_api) opgezet als subpackage (bestand per onderwerp) met gedeeld _client-loket (token via graph_auth + 401-herstel). Onderdeel 1 agenda klaar en getest (15/15): generieke afspraak-CRUD, opmaak bewust uitgesteld naar Module 7. Volgende onderdelen: mail, onedrive, todo, onenote. |
 | 4.5 | 29 mei 2026 | Module 6 onderdeel 2 mail klaar en getest (6/6): generieke stuur_mail (ontvanger/cc/bcc/reply-to als adres of lijst, HTML-body, opslaan-in-verzonden), geen vaste afzender/opmaak. Genoteerd voor later: mail lézen + bijlagen ophalen voor Job B/Uploadtool. |
+| 4.6 | 29 mei 2026 | Module 6 onderdeel 3 onedrive klaar en getest (11/11): generieke maak_map (met _1/_2-logica, geen ingebakken mapnamen) en upload_bestand met automatisch veiligheidsnet voor grote bestanden (>4 MB via upload-sessie in stukjes). Loket uitgebreid met rauwe-bytes-upload (put_inhoud). Aantekeningen voor later toegevoegd: vaste mapnaam-template hoort in aparte format-module (dossier_format); foto-resize uit oude Uploadtool moet nette plek krijgen. |
 
 *— Einde document —*

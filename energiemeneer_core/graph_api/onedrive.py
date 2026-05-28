@@ -1,0 +1,199 @@
+"""OneDrive via Microsoft Graph — mappen aanmaken en bestanden uploaden.
+
+Bron: ``aanmeldformulier_tool/ms_graph.py`` (``maak_onedrive_map`` +
+``upload_bestand_onedrive``). Generiek gehouden: geen vaste mapnamen of
+paden ingebakken — de aanroeper levert het volledige pad aan. (De vaste
+EnergieMeneer-mapnaam-template "straat huisnr, woonplaats" hoort straks in
+een aparte format-module, bijv. ``dossier_format``, niet hier.)
+
+De slimme "naam al bezet → _1/_2"-logica voor de laatste map zit bewust
+wél in de core: dat is generiek nuttig.
+
+Upload kiest automatisch de juiste methode: kleine bestanden (≤ 4 MB) in
+één keer, grotere via een upload-sessie in stukjes (veiligheidsnet voor
+grote PDF's/foto's).
+
+Zie BOUWPLAN.md, Module 6 (onderdeel 3).
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+from typing import Any
+
+import requests
+
+from energiemeneer_core.graph_api import _client
+
+_log = logging.getLogger(__name__)
+
+# Grens tussen simpele upload en upload-sessie (Microsoft-limiet ~4 MB).
+_SIMPEL_MAX = 4 * 1024 * 1024
+# Brokgrootte voor de upload-sessie — moet een veelvoud van 320 KiB zijn.
+_CHUNK = 10 * 327680  # 3,2 MB
+
+
+def maak_map(pad: str) -> dict[str, Any]:
+    """Maak een (genest) mappad aan in OneDrive.
+
+    Tussenliggende mappen worden aangemaakt als ze nog niet bestaan. De
+    laatste map krijgt zo nodig een ``_1``/``_2``-achtervoegsel als de naam
+    al bezet is.
+
+    Args:
+        pad: volledig pad, bijv. ``"1. Werkmap/Energielabels/Straat 8"``.
+
+    Returns:
+        Dict met ``pad`` (het uiteindelijk gebruikte pad) en ``mapnaam``
+        (de uiteindelijke naam van de laatste map — kan afwijken door _1/_2).
+
+    Raises:
+        ValueError: leeg pad.
+        RuntimeError: Graph geeft een fout.
+    """
+    onderdelen = [d for d in pad.strip("/").split("/") if d.strip()] if pad else []
+    if not onderdelen:
+        raise ValueError("pad is verplicht")
+
+    basis_mappen, laatste_map = onderdelen[:-1], onderdelen[-1]
+
+    huidig = ""
+    for onderdeel in basis_mappen:
+        parent = huidig or "root"
+        huidig = f"{huidig}/{onderdeel}" if huidig else onderdeel
+        if not _bestaat(huidig):
+            _maak_submap(parent, onderdeel)
+
+    # Unieke naam zoeken voor de laatste map.
+    parent = huidig or "root"
+    naam, teller = laatste_map, 1
+    while _bestaat(_join(parent, naam)):
+        naam = f"{laatste_map}_{teller}"
+        teller += 1
+    _maak_submap(parent, naam)
+
+    uiteindelijk = _join(parent, naam)
+    _log.info("OneDrive-map aangemaakt: %s", uiteindelijk)
+    return {"pad": uiteindelijk, "mapnaam": naam}
+
+
+def upload_bestand(lokaal_pad: str, onedrive_pad: str) -> dict[str, Any]:
+    """Upload een lokaal bestand naar OneDrive.
+
+    Kiest automatisch tussen simpele upload (≤ 4 MB) en een upload-sessie
+    in stukjes (grotere bestanden).
+
+    Args:
+        lokaal_pad: pad naar het lokale bestand.
+        onedrive_pad: doelpad in OneDrive (incl. bestandsnaam).
+
+    Returns:
+        Dict met ``pad`` en ``grootte`` (bytes).
+
+    Raises:
+        ValueError: doelpad ontbreekt.
+        RuntimeError: bestand niet gevonden of Graph geeft een fout.
+    """
+    if not onedrive_pad or not onedrive_pad.strip():
+        raise ValueError("onedrive_pad is verplicht")
+    if not os.path.isfile(lokaal_pad):
+        raise RuntimeError(f"Bestand niet gevonden: {lokaal_pad}")
+
+    grootte = os.path.getsize(lokaal_pad)
+    if grootte <= _SIMPEL_MAX:
+        _upload_klein(lokaal_pad, onedrive_pad)
+    else:
+        _upload_groot(lokaal_pad, onedrive_pad, grootte)
+
+    _log.info("Bestand geüpload naar OneDrive: %s (%d bytes)", onedrive_pad, grootte)
+    return {"pad": onedrive_pad, "grootte": grootte}
+
+
+# ── Upload-varianten ───────────────────────────────────────────────────────────
+
+
+def _upload_klein(lokaal_pad: str, onedrive_pad: str) -> None:
+    with open(lokaal_pad, "rb") as f:
+        inhoud = f.read()
+    resp = _client.put_inhoud(f"/me/drive/root:/{onedrive_pad}:/content", inhoud)
+    if resp.status_code not in (200, 201):
+        raise RuntimeError(
+            f"Upload mislukt (HTTP {resp.status_code}): {resp.text[:300]}"
+        )
+
+
+def _upload_groot(lokaal_pad: str, onedrive_pad: str, grootte: int) -> None:
+    # Stap 1: vraag een upload-sessie aan.
+    resp = _client.post(
+        f"/me/drive/root:/{onedrive_pad}:/createUploadSession",
+        json={"item": {"@microsoft.graph.conflictBehavior": "replace"}},
+    )
+    if resp.status_code not in (200, 201):
+        raise RuntimeError(
+            f"Upload-sessie aanvragen mislukt (HTTP {resp.status_code}): "
+            f"{resp.text[:300]}"
+        )
+    upload_url = resp.json().get("uploadUrl")
+    if not upload_url:
+        raise RuntimeError("Upload-sessie gaf geen uploadUrl terug")
+
+    # Stap 2: stuur het bestand in stukjes. De uploadUrl is al voorzien van
+    # toegang, dus hier géén Authorization-header.
+    with open(lokaal_pad, "rb") as f:
+        start = 0
+        while start < grootte:
+            brok = f.read(_CHUNK)
+            eind = start + len(brok) - 1
+            headers = {
+                "Content-Length": str(len(brok)),
+                "Content-Range": f"bytes {start}-{eind}/{grootte}",
+            }
+            try:
+                r = requests.put(upload_url, data=brok, headers=headers, timeout=60)
+            except requests.RequestException as e:
+                raise RuntimeError(f"Upload-sessie niet bereikbaar: {e}") from e
+            # 202 = brok ontvangen, 200/201 = klaar (laatste brok).
+            if r.status_code not in (200, 201, 202):
+                raise RuntimeError(
+                    f"Upload-brok mislukt (HTTP {r.status_code}): {r.text[:300]}"
+                )
+            start = eind + 1
+
+
+# ── Map-hulpjes ────────────────────────────────────────────────────────────────
+
+
+def _bestaat(pad: str) -> bool:
+    resp = _client.get(f"/me/drive/root:/{pad}")
+    if resp.status_code == 200:
+        return True
+    if resp.status_code == 404:
+        return False
+    raise RuntimeError(
+        f"OneDrive-pad controleren mislukt (HTTP {resp.status_code}): {resp.text[:300]}"
+    )
+
+
+def _maak_submap(parent: str, naam: str) -> None:
+    ep = (
+        "/me/drive/root/children"
+        if parent == "root"
+        else f"/me/drive/root:/{parent}:/children"
+    )
+    resp = _client.post(
+        ep,
+        json={
+            "name": naam,
+            "folder": {},
+            "@microsoft.graph.conflictBehavior": "fail",
+        },
+    )
+    if resp.status_code not in (200, 201):
+        raise RuntimeError(
+            f"Map aanmaken mislukt ({naam}, HTTP {resp.status_code}): {resp.text[:300]}"
+        )
+
+
+def _join(parent: str, naam: str) -> str:
+    return naam if parent == "root" else f"{parent}/{naam}"

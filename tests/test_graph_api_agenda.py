@@ -27,7 +27,8 @@ def _vang_request(monkeypatch, *responses):
     calls: list[dict] = []
     seq = list(responses)
 
-    def fake_request(method, url, headers=None, params=None, json=None, timeout=None):
+    def fake_request(method, url, headers=None, params=None, json=None,
+                     data=None, timeout=None):
         calls.append({"method": method, "url": url, "headers": headers,
                       "params": params, "json": json})
         return seq.pop(0) if len(seq) > 1 else seq[0]

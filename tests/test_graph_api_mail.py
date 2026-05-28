@@ -24,7 +24,8 @@ def _resp(status=202, json_data=None, text=""):
 def _vang_request(monkeypatch, response):
     calls: list[dict] = []
 
-    def fake_request(method, url, headers=None, params=None, json=None, timeout=None):
+    def fake_request(method, url, headers=None, params=None, json=None,
+                     data=None, timeout=None):
         calls.append({"method": method, "url": url, "json": json})
         return response
 
