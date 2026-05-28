@@ -133,7 +133,7 @@ Vink af wat klaar is (laat Claude Code dit updaten):
 
 - [x] Module 1 — storage  *(commit 5b3dd68, 9/9 tests groen)*
 - [x] Module 2 — bag  *(12/12 tests groen; zoek_adres + vrij_zoeken + normaliseer_postcode)*
-- [ ] Module 3 — ep_online
+- [x] Module 3 — ep_online  *(10/10 tests groen; zoek_op_vbo + zoek_op_adres)*
 - [ ] Module 4 — prijs
 - [ ] Module 5 — graph_auth
 - [ ] Module 6 — graph_api
