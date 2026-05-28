@@ -135,6 +135,6 @@ Vink af wat klaar is (laat Claude Code dit updaten):
 - [x] Module 2 — bag  *(12/12 tests groen; zoek_adres + vrij_zoeken + normaliseer_postcode)*
 - [x] Module 3 — ep_online  *(10/10 tests groen; zoek_op_vbo + zoek_op_adres)*
 - [x] Module 4 — prijs  *(31/31 tests groen; bereken_prijs incl. spoedtoeslag en maatwerk)*
-- [ ] Module 5 — graph_auth
+- [x] Module 5 — graph_auth  *(13/13 tests groen; public client, refresh-rotatie in token_persist.json, ntfy-noodmelding met 24u-rem)*
 - [ ] Module 6 — graph_api
 - [ ] Module 7 — agenda_format

@@ -4,14 +4,17 @@
 
 | | |
 |---|---|
-| **Versie** | 4.1 |
+| **Versie** | 4.3 |
 | **Laatst bijgewerkt** | 28 mei 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
 
 _Centrale kennisbasis en kompas voor het bouwen van de Ultieme Tool, in samenwerking met Claude AI._
 
-> **Hoe versiebeheer werkt:** dit bestand heet altijd `Meesterbrein.md` — de naam verandert nooit. Het versienummer staat alleen hierboven in de tabel en wordt bij elke wezenlijke wijziging met één opgehoogd (4.1 → 4.2 → …). Er bestaat maar één Meesterbrein, op twee plekken die altijd gelijk moeten zijn: (1) het Claude Project, (2) de projectmap energiemeneer-core. Wijziging nodig? Laat Claude (chat) het document bijwerken en het nummer ophogen, en vervang het op beide plekken.
+> **⚠️ INSTRUCTIE VOOR CLAUDE (chat én Claude Code) — versiebeheer, lees dit eerst:**
+> Dit bestand heet **altijd** `Meesterbrein.md`. De bestandsnaam verandert **NOOIT** — niet hernoemen naar `Meesterbrein_v2.docx`, `Meesterbrein_v4_2.md` of welke genummerde variant dan ook. Het versienummer leeft **uitsluitend** in de tabel hierboven (regel "Versie"). Bij een wezenlijke wijziging: hoog dát nummer met één op (4.2 → 4.3 → …) en voeg een regel toe aan de versiehistorie (hoofdstuk 11). Lever het bestand altijd terug onder dezelfde naam `Meesterbrein.md`.
+>
+> Er bestaat precies één Meesterbrein, op twee plekken die altijd identiek moeten zijn: (1) het **Claude Project**, (2) de **projectmap `energiemeneer-core`** (voor Claude Code). Na een wijziging vervangt Kevin het bestand op beide plekken — de naam blijft gelijk, dus "bestand vervangen?" → ja. Geen genummerde kopieën laten rondslingeren.
 
 # 0. Leeswijzer — hoe dit document werkt
 
@@ -28,6 +31,28 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - **Roadmap (H10)** — wat eerst, en waarom. Verandert vaak.
 
 > **Werkafspraak met Claude** Claude is de strategisch en technisch partner van Kevin Valkenhoff / De EnergieMeneer. Zoek altijd de meest optimale oplossing — ook buiten het kader van Kevin’s voorstel. Bij afwijking: benoem expliciet WAT en WAAROM. Groot denken is de norm, gericht op het hoofddoel. Communiceer in het Nederlands, informeel maar professioneel. Dit document is leidend; werk altijd binnen het Project en update dit document zodra de architectuur of een module wezenlijk verandert.
+
+# 0a. Bouwstatus — waar staan we nu
+
+> Deze sectie houdt de actuele voortgang bij, zodat elke nieuwe chat en elke Claude Code-sessie meteen weet waar het project staat. Werk dit bij zodra een module of fase verandert.
+
+**Laatst bijgewerkt:** 28 mei 2026
+
+**Fundament — `energiemeneer-core`** (Python-library, draait via Claude Code in de map `energiemeneer-core`, op GitHub/lokaal):
+
+| Module | Status | Details |
+| --- | --- | --- |
+| 1. storage | ✅ Klaar | Atomic JSON-opslag, pad-detectie, lock. 9/9 tests groen. |
+| 2. bag | ✅ Klaar | Adres- + vrij zoeken (BAG + PDOK). 12/12 tests groen. |
+| 3. ep_online | ✅ Klaar | Label-status via VBO of adres. 10/10 tests groen. |
+| 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
+| 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
+| 6. graph_api | ⏳ Volgende | Agenda, To Do, Mail, OneDrive, OneNote. |
+| 7. agenda_format | ⬜ Nog niet | Vaste Outlook-opmaak. |
+
+**Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
+
+**Volgende stap:** Module 6 (graph_api) bouwen — agenda, To Do, mail, OneDrive en OneNote bovenop de nu werkende graph_auth. Start Claude Code in de map en zeg "lees Meesterbrein.md en BOUWPLAN.md, we doen module 6".
 
 # 1. Visie en hoofddoel
 
@@ -378,5 +403,8 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 3.0 | Mei/Juni 2026 | §7 bijgewerkt na voltooiing uploadtool; voorbereiding samenvoeging. |
 | 3.1 | 28 mei 2026 | Admin Portal als vierde pijler toegevoegd (§10); VvE-tool toegevoegd aan project. |
 | 4.0 | 28 mei 2026 | Fundamentele herstructurering naar platform-document. Einddoel (één online portal + dashboard, eigen hosting, modules op gedeeld fundament) als uitgangspunt i.p.v. historische pijlers. Nieuwe driedeling architectuur/modules/contracten/roadmap. energiemeneer-core, centrale datalaag, dashboard, fusie instroom, en gefaseerd migratiepad (F0–F8) toegevoegd. Vier structurele knelpunten (K1–K4) benoemd. VvE en advies als modules gepositioneerd. |
+| 4.1 | 28 mei 2026 | Bestandsnaam vastgezet op `Meesterbrein.md` (geen versienummer meer in de naam). Versiebeheer-instructie toegevoegd. |
+| 4.2 | 28 mei 2026 | Bouwstatus-sectie (H0a) toegevoegd: core-modules 1–4 klaar en getest, module 5 (graph_auth) is de volgende. Versiebeheer-instructie aangescherpt voor toekomstige chats. |
+| 4.3 | 28 mei 2026 | Module 5 (graph_auth) klaar en getest (13/13): public client, refresh-rotatie in token_persist.json, onafhankelijke ntfy-noodmelding bij verlopen koppeling (max. 1×/24u). Bouwstatus bijgewerkt; module 6 (graph_api) is nu de volgende. |
 
 *— Einde document —*
