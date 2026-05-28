@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "energiemeneer-core"
+version = "0.1.0"
+description = "Gedeelde Python-library voor het Energiemeneer energielabel-platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [
+    { name = "Kevin Valkenhoff", email = "kevinvalkenhoff@gmail.com" },
+]
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["energiemeneer_core*"]
