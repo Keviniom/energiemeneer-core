@@ -134,7 +134,7 @@ Vink af wat klaar is (laat Claude Code dit updaten):
 - [x] Module 1 — storage  *(commit 5b3dd68, 9/9 tests groen)*
 - [x] Module 2 — bag  *(12/12 tests groen; zoek_adres + vrij_zoeken + normaliseer_postcode)*
 - [x] Module 3 — ep_online  *(10/10 tests groen; zoek_op_vbo + zoek_op_adres)*
-- [ ] Module 4 — prijs
+- [x] Module 4 — prijs  *(31/31 tests groen; bereken_prijs incl. spoedtoeslag en maatwerk)*
 - [ ] Module 5 — graph_auth
 - [ ] Module 6 — graph_api
 - [ ] Module 7 — agenda_format
