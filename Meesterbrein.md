@@ -2,8 +2,16 @@
 
 **Van losse tools naar één online platform**
 
-Kevin Valkenhoff · 28 mei 2026 · Versie 4.0
+| | |
+|---|---|
+| **Versie** | 4.1 |
+| **Laatst bijgewerkt** | 28 mei 2026 |
+| **Auteur** | Kevin Valkenhoff |
+| **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
+
 _Centrale kennisbasis en kompas voor het bouwen van de Ultieme Tool, in samenwerking met Claude AI._
+
+> **Hoe versiebeheer werkt:** dit bestand heet altijd `Meesterbrein.md` — de naam verandert nooit. Het versienummer staat alleen hierboven in de tabel en wordt bij elke wezenlijke wijziging met één opgehoogd (4.1 → 4.2 → …). Er bestaat maar één Meesterbrein, op twee plekken die altijd gelijk moeten zijn: (1) het Claude Project, (2) de projectmap energiemeneer-core. Wijziging nodig? Laat Claude (chat) het document bijwerken en het nummer ophogen, en vervang het op beide plekken.
 
 # 0. Leeswijzer — hoe dit document werkt
 
