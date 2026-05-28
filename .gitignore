@@ -112,3 +112,6 @@ dmypy.json
 *.swo
 *~
 .DS_Store
+
+# Windows / OneDrive sync metadata
+*:Zone.Identifier
