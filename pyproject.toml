@@ -14,5 +14,11 @@ authors = [
 ]
 dependencies = []
 
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
 [tool.setuptools.packages.find]
 include = ["energiemeneer_core*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
