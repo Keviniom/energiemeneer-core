@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.9 |
+| **Versie** | 4.10 |
 | **Laatst bijgewerkt** | 1 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -48,11 +48,12 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 | 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
 | 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
 | 6. graph_api | ✅ Klaar | Alle onderdelen af: ✅ agenda, ✅ mail, ✅ onedrive, ✅ todo, ✅ onenote. 51/51 tests groen. |
-| 7. agenda_format | ✅ Klaar | Vaste Outlook-opmaak losgekoppeld van de agenda-laag. 17/17 tests groen. **Daarmee is de hele core af (143/143 tests).** |
+| 7. agenda_format | ✅ Klaar | Vaste Outlook-opmaak losgekoppeld van de agenda-laag. 17/17 tests groen. |
+| 8. events | ✅ Klaar | Centrale append-only logging (fundament dashboard). schrijf_event + lees_events met filters; strikte resultaat-/niveau-waarden; JSONL bovenop storage. 16/16 tests groen. **Hele core nu af: 159/159 tests.** |
 
 **Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
 
-**Volgende stap:** De core (Modules 1–7) is volledig af en getest (143/143). Het fundament uit roadmap-fase F1 is daarmee klaar. Volgende fase: F2 — Aanmeldformulier + Admin Portal op de core trekken (lokale kopieën vervangen door imports uit de core; strangler-aanpak: één tool tegelijk, output vergelijken, pas dan de oude kopie verwijderen). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+**Volgende stap:** De core is volledig af en getest (Modules 1–8, 159/159). Naast het fundament uit fase F1 is nu ook de centrale logging (Module 8 events) gebouwd — de basis waar het dashboard (H6) straks uit leest. Volgende fase: F2 — Aanmeldformulier + Admin Portal op de core trekken (lokale kopieën vervangen door imports uit de core; strangler-aanpak: één tool tegelijk, output vergelijken, pas dan de oude kopie verwijderen). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
 **Aantekeningen voor later (consolidatie):**
 - Mail lézen + bijlagen ophalen (voor Job B/Uploadtool) — bron is `outlook_handler.py`.
@@ -193,7 +194,7 @@ Drie kerntabellen:
 
 - **dossiers** — één rij per dossier (VBO-ID), met klant, adres, makelaar, status, paden en koppelingen.
 
-- **events** — append-only logboek: elke statuswijziging met tijd, module en resultaat. Voedt het dashboard.
+- **events** — append-only logboek: elke statuswijziging met tijd, module en resultaat. Voedt het dashboard. *(Gebouwd in core-module 8. Vast event-formaat: `id`, `tijd` (UTC), `module`, `actie`, `resultaat` ∈ {gelukt, mislukt, in_uitvoering}, `niveau` ∈ {info, waarschuwing, kritiek}, `vbo_id`, `bericht`, `details`. `resultaat` en `niveau` zijn strikt — andere waarden geven een fout — zodat het dashboard betrouwbaar kan filteren en kleuren. Opslag nu als JSONL bovenop storage, achter één interne functie zodat B1 (SQLite/PostgreSQL) later in te schuiven is.)*
 
 - **documenten** — 0..N losse bestandskoppelingen per dossier (opdrachtbevestiging, bewijsdoc, factuur, label).
 
@@ -418,5 +419,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.7 | 29 mei 2026 | Module 6 onderdeel 4 todo klaar en getest (7/7): generieke maak_taak (lijst zoeken of aanmaken, _1/_2-logica bij dubbele taaknaam, optionele deadline DD-MM-YYYY → Amsterdam). Geen ingebakken lijstnamen. Genoteerd voor later: taken afvinken/bijwerken als losse uitbreiding bij dossier-status-tracking. |
 | 4.8 | 1 juni 2026 | Module 6 onderdeel 5 onenote klaar en getest (12/12) — daarmee is graph_api volledig af (51/51 tests). Generieke kopieer_sjabloonpagina: notitieboek-, sectie- en sjabloonnaam losgemaakt tot parameters (geen ingebakken "De Energiemeneer"/"Opnames"/"Adres" meer). Twee fragiliteiten opgeschoond: (1) async copyToSection wacht nu op de operatie-statuslink i.p.v. een blinde sleep + gokken welke pagina de kopie is; (2) ontbrekende sjabloon geeft standaard een duidelijke fout — een lege pagina wordt alleen op expliciet verzoek (maak_lege_bij_ontbreken=True) aangemaakt, geen stille fallback meer. Volgende: Module 7 (agenda_format). |
 | 4.9 | 1 juni 2026 | Module 7 (agenda_format) klaar en getest (17/17) — **daarmee is de hele core (Modules 1–7) af: 143/143 tests groen.** Vaste Outlook-opmaak losgekoppeld van de generieke agenda-laag: pure functie opmaak_opname levert titel + HTML-body + locatie + herinnering; agenda weet *hoe*, agenda_format weet *wat*. Klantinvoer wordt HTML-veilig gemaakt. H9.3-titel gelijkgetrokken met de gekozen oude-stijl (klantnaam + m² + Amsterdamse tijden) i.p.v. de eerdere adres-variant. Fundament-fase F1 afgerond; volgende fase is F2 (instroom-tools op de core trekken). |
+| 4.10 | 1 juni 2026 | Module 8 (events) toegevoegd aan de core en getest (16/16) — totaal 159/159. Centrale append-only logging als fundament voor het dashboard (H6): schrijf_event + lees_events (filters op module/vbo_id/resultaat/niveau/sinds/limiet, nieuwste eerst), bovenop storage als JSONL. Vast event-formaat vastgelegd in H4.2; resultaat (gelukt/mislukt/in_uitvoering) en niveau (info/waarschuwing/kritiek) zijn strikt — geen vrije tekst — zodat het dashboard betrouwbaar kan filteren/kleuren. Opslag achter één interne functie, zodat beslispunt B1 (echte DB) later in te schuiven is. |
 
 *— Einde document —*

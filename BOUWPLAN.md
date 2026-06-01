@@ -77,6 +77,14 @@ Bouw in DEZE volgorde. Niet vooruitlopen.
 - De vaste Outlook titel/body-opmaak (zie Meesterbrein H9.3). Het "merk".
   Eén bron, identiek voor alle instroomkanalen.
 
+### Module 8 — `events`  (toegevoegd na F1, vóór F2)
+- Centrale append-only logging: elke module schrijft wat hij deed
+  (wie/wat/wanneer/resultaat). Fundament voor het dashboard (zie
+  Meesterbrein H4.2 + H6). Bovenop `storage`.
+- Strikte waarden: `resultaat` ∈ {gelukt, mislukt, in_uitvoering},
+  `niveau` ∈ {info, waarschuwing, kritiek}. Opslag als JSON Lines, achter
+  één interne functie zodat later een echte DB (B1) kan komen.
+
 ---
 
 ## 4. Vaste afspraken (contracten)
@@ -143,3 +151,4 @@ Vink af wat klaar is (laat Claude Code dit updaten):
   - [x] 4. todo  *(7/7 tests groen; generieke maak_taak met lijst zoeken/aanmaken + _1/_2-logica + optionele deadline)*
   - [x] 5. onenote  *(12/12 tests groen; generieke kopieer_sjabloonpagina — notitieboek/sectie/sjabloon als parameters, async copyToSection met operatie-polling i.p.v. blinde sleep, expliciete lege-pagina-terugval i.p.v. stille fallback)*
 - [x] Module 7 — agenda_format  *(17/17 tests groen; pure opmaak losgekoppeld van de agenda-laag: opmaak_opname → titel (klant + m² + Amsterdamse tijden) + HTML-body (klant/adres/makelaar/zakelijk/opmerking, HTML-veilig) + locatie + herinnering; bereken_eindtijd voor de vaste 90 min)*
+- [x] Module 8 — events  *(16/16 tests groen; append-only JSONL-logboek bovenop storage. schrijf_event + lees_events met filters (module/vbo_id/resultaat/niveau/sinds/limiet), nieuwste eerst. Strikte resultaat- en niveau-waarden met ValueError; corrupte regels overgeslagen)*
