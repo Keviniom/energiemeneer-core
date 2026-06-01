@@ -14,7 +14,7 @@ _Centrale kennisbasis en kompas voor het bouwen van de Ultieme Tool, in samenwer
 > **⚠️ INSTRUCTIE VOOR CLAUDE (chat én Claude Code) — versiebeheer, lees dit eerst:**
 > Dit bestand heet **altijd** `Meesterbrein.md`. De bestandsnaam verandert **NOOIT** — niet hernoemen naar `Meesterbrein_v2.docx`, `Meesterbrein_v4_2.md` of welke genummerde variant dan ook. Het versienummer leeft **uitsluitend** in de tabel hierboven (regel "Versie"). Bij een wezenlijke wijziging: hoog dát nummer met één op (4.2 → 4.3 → …) en voeg een regel toe aan de versiehistorie (hoofdstuk 11). Lever het bestand altijd terug onder dezelfde naam `Meesterbrein.md`.
 >
-> Er bestaat precies één Meesterbrein, op twee plekken die altijd identiek moeten zijn: (1) het **Claude Project**, (2) de **projectmap `energiemeneer-core`** (voor Claude Code). Na een wijziging vervangt Kevin het bestand op beide plekken — de naam blijft gelijk, dus "bestand vervangen?" → ja. Geen genummerde kopieën laten rondslingeren.
+> Er bestaat precies één Meesterbrein, en die leeft op één plek: de **projectmap `energiemeneer-core`** (op GitHub). Het gekoppelde **Claude Project** leest het bestand **live vanuit GitHub** — na een push hoeft Kevin dus niets handmatig te uploaden of te vervangen. Eén bron van waarheid, geen genummerde kopieën laten rondslingeren.
 
 # 0. Leeswijzer — hoe dit document werkt
 
