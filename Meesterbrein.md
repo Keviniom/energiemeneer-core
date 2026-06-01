@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| **Versie** | 4.7 |
-| **Laatst bijgewerkt** | 28 mei 2026 |
+| **Versie** | 4.8 |
+| **Laatst bijgewerkt** | 1 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
 
@@ -36,7 +36,7 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 > Deze sectie houdt de actuele voortgang bij, zodat elke nieuwe chat en elke Claude Code-sessie meteen weet waar het project staat. Werk dit bij zodra een module of fase verandert.
 
-**Laatst bijgewerkt:** 28 mei 2026
+**Laatst bijgewerkt:** 1 juni 2026
 
 **Fundament — `energiemeneer-core`** (Python-library, draait via Claude Code in de map `energiemeneer-core`, op GitHub/lokaal):
 
@@ -47,12 +47,12 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 | 3. ep_online | ✅ Klaar | Label-status via VBO of adres. 10/10 tests groen. |
 | 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
 | 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
-| 6. graph_api | 🔧 Mee bezig | In onderdelen. ✅ agenda, ✅ mail, ✅ onedrive, ✅ todo (taak + lijst). Nog: onenote (laatste). |
+| 6. graph_api | ✅ Klaar | Alle onderdelen af: ✅ agenda, ✅ mail, ✅ onedrive, ✅ todo, ✅ onenote. 51/51 tests groen. |
 | 7. agenda_format | ⬜ Nog niet | Vaste Outlook-opmaak. |
 
 **Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
 
-**Volgende stap:** Module 6 (graph_api) afmaken — agenda + mail + onedrive + todo klaar. Laatste onderdeel: OneNote (meest fragiel: copyToSection + sjabloon, ingebakken notitieboek-/sectienamen losmaken).
+**Volgende stap:** Module 7 (agenda_format) — de vaste Outlook titel/body-opmaak (het "merk", zie H9.3). Module 6 (graph_api) is volledig klaar.
 
 **Aantekeningen voor later (consolidatie):**
 - Mail lézen + bijlagen ophalen (voor Job B/Uploadtool) — bron is `outlook_handler.py`.
@@ -416,5 +416,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.5 | 29 mei 2026 | Module 6 onderdeel 2 mail klaar en getest (6/6): generieke stuur_mail (ontvanger/cc/bcc/reply-to als adres of lijst, HTML-body, opslaan-in-verzonden), geen vaste afzender/opmaak. Genoteerd voor later: mail lézen + bijlagen ophalen voor Job B/Uploadtool. |
 | 4.6 | 29 mei 2026 | Module 6 onderdeel 3 onedrive klaar en getest (11/11): generieke maak_map (met _1/_2-logica, geen ingebakken mapnamen) en upload_bestand met automatisch veiligheidsnet voor grote bestanden (>4 MB via upload-sessie in stukjes). Loket uitgebreid met rauwe-bytes-upload (put_inhoud). Aantekeningen voor later toegevoegd: vaste mapnaam-template hoort in aparte format-module (dossier_format); foto-resize uit oude Uploadtool moet nette plek krijgen. |
 | 4.7 | 29 mei 2026 | Module 6 onderdeel 4 todo klaar en getest (7/7): generieke maak_taak (lijst zoeken of aanmaken, _1/_2-logica bij dubbele taaknaam, optionele deadline DD-MM-YYYY → Amsterdam). Geen ingebakken lijstnamen. Genoteerd voor later: taken afvinken/bijwerken als losse uitbreiding bij dossier-status-tracking. |
+| 4.8 | 1 juni 2026 | Module 6 onderdeel 5 onenote klaar en getest (12/12) — daarmee is graph_api volledig af (51/51 tests). Generieke kopieer_sjabloonpagina: notitieboek-, sectie- en sjabloonnaam losgemaakt tot parameters (geen ingebakken "De Energiemeneer"/"Opnames"/"Adres" meer). Twee fragiliteiten opgeschoond: (1) async copyToSection wacht nu op de operatie-statuslink i.p.v. een blinde sleep + gokken welke pagina de kopie is; (2) ontbrekende sjabloon geeft standaard een duidelijke fout — een lege pagina wordt alleen op expliciet verzoek (maak_lege_bij_ontbreken=True) aangemaakt, geen stille fallback meer. Volgende: Module 7 (agenda_format). |
 
 *— Einde document —*
