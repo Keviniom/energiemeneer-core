@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.8 |
+| **Versie** | 4.9 |
 | **Laatst bijgewerkt** | 1 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -48,11 +48,11 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 | 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
 | 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
 | 6. graph_api | ✅ Klaar | Alle onderdelen af: ✅ agenda, ✅ mail, ✅ onedrive, ✅ todo, ✅ onenote. 51/51 tests groen. |
-| 7. agenda_format | ⬜ Nog niet | Vaste Outlook-opmaak. |
+| 7. agenda_format | ✅ Klaar | Vaste Outlook-opmaak losgekoppeld van de agenda-laag. 17/17 tests groen. **Daarmee is de hele core af (143/143 tests).** |
 
 **Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
 
-**Volgende stap:** Module 7 (agenda_format) — de vaste Outlook titel/body-opmaak (het "merk", zie H9.3). Module 6 (graph_api) is volledig klaar.
+**Volgende stap:** De core (Modules 1–7) is volledig af en getest (143/143). Het fundament uit roadmap-fase F1 is daarmee klaar. Volgende fase: F2 — Aanmeldformulier + Admin Portal op de core trekken (lokale kopieën vervangen door imports uit de core; strangler-aanpak: één tool tegelijk, output vergelijken, pas dan de oude kopie verwijderen). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
 **Aantekeningen voor later (consolidatie):**
 - Mail lézen + bijlagen ophalen (voor Job B/Uploadtool) — bron is `outlook_handler.py`.
@@ -356,7 +356,7 @@ Deze sectie bevat de afspraken die de code moet volgen. Verandert er iets hier, 
 
 ## 9.3 Outlook-afspraak format (het “merk”)
 
-> **Vaste opmaak — één bron in core.agenda_format** Titel: Energielabel opname — [Straatnaam huisnr], [Woonplaats] Locatie: volledig adres. Duur: 90 minuten. Reminder: 60 min van tevoren. Body: klantnaam, e-mail, telefoon, adres, woningtype, prijs, huidig label, makelaar (indien ingevuld), zakelijke gegevens (indien van toepassing), opmerkingen. Geldt identiek voor alle instroomkanalen — Kevin ziet in zijn agenda altijd hetzelfde overzicht.
+> **Vaste opmaak — één bron in core.agenda_format** Titel: `[Klantnaam]: Energielabel opname [m²]m² tussen [begin] en [eind] uur` (bijv. "Jan Jansen: Energielabel opname 120m² tussen 15:30 en 17:00 uur"; tijden in Amsterdamse tijd, m² vervalt als de oppervlakte onbekend is, naam valt terug op "Klant onbekend"). Locatie: volledig adres. Duur: 90 minuten. Reminder: 60 min van tevoren. Body: klantnaam, e-mail, telefoon, adres, bouwjaar, oppervlakte, huidig label, woningtype, prijs, makelaar (indien ingevuld), zakelijke gegevens (indien van toepassing), opmerkingen — alle klantinvoer HTML-veilig. Geldt identiek voor alle instroomkanalen — Kevin ziet in zijn agenda altijd hetzelfde overzicht. *(Beslissing 1 juni 2026: titel bewust de bewezen oude-stijl met klantnaam + m² + tijden, i.p.v. de eerdere adres-variant — geeft in de agenda in één oogopslag wie/hoe laat.)*
 
 ## 9.4 OneDrive-mappenstructuur
 
@@ -417,5 +417,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.6 | 29 mei 2026 | Module 6 onderdeel 3 onedrive klaar en getest (11/11): generieke maak_map (met _1/_2-logica, geen ingebakken mapnamen) en upload_bestand met automatisch veiligheidsnet voor grote bestanden (>4 MB via upload-sessie in stukjes). Loket uitgebreid met rauwe-bytes-upload (put_inhoud). Aantekeningen voor later toegevoegd: vaste mapnaam-template hoort in aparte format-module (dossier_format); foto-resize uit oude Uploadtool moet nette plek krijgen. |
 | 4.7 | 29 mei 2026 | Module 6 onderdeel 4 todo klaar en getest (7/7): generieke maak_taak (lijst zoeken of aanmaken, _1/_2-logica bij dubbele taaknaam, optionele deadline DD-MM-YYYY → Amsterdam). Geen ingebakken lijstnamen. Genoteerd voor later: taken afvinken/bijwerken als losse uitbreiding bij dossier-status-tracking. |
 | 4.8 | 1 juni 2026 | Module 6 onderdeel 5 onenote klaar en getest (12/12) — daarmee is graph_api volledig af (51/51 tests). Generieke kopieer_sjabloonpagina: notitieboek-, sectie- en sjabloonnaam losgemaakt tot parameters (geen ingebakken "De Energiemeneer"/"Opnames"/"Adres" meer). Twee fragiliteiten opgeschoond: (1) async copyToSection wacht nu op de operatie-statuslink i.p.v. een blinde sleep + gokken welke pagina de kopie is; (2) ontbrekende sjabloon geeft standaard een duidelijke fout — een lege pagina wordt alleen op expliciet verzoek (maak_lege_bij_ontbreken=True) aangemaakt, geen stille fallback meer. Volgende: Module 7 (agenda_format). |
+| 4.9 | 1 juni 2026 | Module 7 (agenda_format) klaar en getest (17/17) — **daarmee is de hele core (Modules 1–7) af: 143/143 tests groen.** Vaste Outlook-opmaak losgekoppeld van de generieke agenda-laag: pure functie opmaak_opname levert titel + HTML-body + locatie + herinnering; agenda weet *hoe*, agenda_format weet *wat*. Klantinvoer wordt HTML-veilig gemaakt. H9.3-titel gelijkgetrokken met de gekozen oude-stijl (klantnaam + m² + Amsterdamse tijden) i.p.v. de eerdere adres-variant. Fundament-fase F1 afgerond; volgende fase is F2 (instroom-tools op de core trekken). |
 
 *— Einde document —*
