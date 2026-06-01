@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.11 |
+| **Versie** | 4.12 |
 | **Laatst bijgewerkt** | 1 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -55,11 +55,17 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 **Bevinding voor toekomst:** Railway-account 'keviniom' heeft via de GitHub-app Repository access = All repositories ingesteld. Railway kan dus zonder extra configuratie bij alle huidige én toekomstige repos in het Keviniom-account, inclusief private repos zoals energiemeneer-core. Geldt ook voor de geïnstalleerde Anthropic Claude GitHub-app.
 
-**Fase 2 (F2) — instroom-tools op de core:** ✅ **F2.0 klaar** — `energiemeneer-core` is installeerbaar als Python-package via pip. Volgende stap: F2.1/F2.2 (zie H10.2).
+**Fundament — fase F1:** ✅ **volledig af** — core compleet (Modules 1–8, 159/159 tests groen).
 
-**Volgende stap:** De core is volledig af en getest (Modules 1–8, 159/159) én installeerbaar (F2.0). Volgende fase: F2.2 — in de admin-portal de eerste functie laten leunen op de core (strangler-aanpak: één functie tegelijk vervangen door een core-aanroep, output vergelijken, pas dan de oude kopie verwijderen). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+**Fase 2 (F2) — instroom-tools op de core:** 🔧 **begonnen.**
+- ✅ **F2.0** — `energiemeneer-core` installeerbaar als Python-package via pip.
+- ✅ **Stap 1a (plumbing — postcode-normalisatie) bewezen op Railway:** PR-environment `admin-portal-pr-1` bouwde succesvol, `energiemeneer-core 0.1.0` schoon geïnstalleerd vanaf publieke GitHub-tag, healthcheck groen, `/healthz`-endpoint reageert correct ("ok"-response geverifieerd in browser).
+- ⬜ **Volgende: stap 1b** — postcode-vervanging in `server.py`, opnieuw via de PR-flow verifiëren (zie H10.2, F2.1).
+
+**Volgende stap:** Stap 1b — in de admin-portal `server.py` de lokale postcode-logica vervangen door de core-aanroep (`bag.normaliseer_postcode`), via een branch → PR → Railway PR-environment (werkwijze in H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
 **Aantekeningen voor later (consolidatie):**
+- Docker-waarschuwing tijdens Railway-build: secrets via ARG/ENV in Dockerfile/railway.toml (ADMIN_PASSWORD, EP_ONLINE_KEY, MS_CLIENT_SECRET, MS_REFRESH_TOKEN, OVERHEID_API_KEY, SECRET_KEY). Geen build-fout, maar wel best-practice-schuld. Hoort opgeruimd te worden samen met de secret-rotatie van H8.3.
 - Mail lézen + bijlagen ophalen (voor Job B/Uploadtool) — bron is `outlook_handler.py`.
 - Vaste mapnaam-template "straat huisnr, woonplaats" hoort in een aparte format-module (bijv. `dossier_format`), niet in module 6.
 - Foto-resize-logica uit de oude Uploadtool moet een nette plek krijgen (mogelijk `core/foto` of als hulpfunctie in de Upload-module).
@@ -411,7 +417,21 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 
 **F2.0 Installeerbaar maken (1 juni 2026):** pyproject.toml in de core gevuld met tzdata-dependency (msal niet nodig — graph_auth regelt tokens zelf via requests). Setuptools als builder. Schone-venv-test geslaagd: pip install . in verse venv, alle imports werken, tzdata bewijst Amsterdamse tijdzone-conversie (UTC 13:30 → AMS 15:30 +zomertijd), geen testbestanden in site-packages.
 
-**F2.1 (volgende):** core als dependency opnemen in de admin-portal (`energiemeneer-core @ git+...`); Railway kan bij de private repo dankzij de 'All repositories'-toegang van de GitHub-app (zie Bevinding in H0a).
+**Stap 1a — plumbing bewezen op Railway (1 juni 2026):** de admin-portal neemt `energiemeneer-core` als dependency op (via publieke GitHub-tag, anoniem bereikbaar zonder credentials). PR-environment `admin-portal-pr-1`: Nixpacks-build slaagde, `energiemeneer-core 0.1.0` schoon geïnstalleerd, healthcheck groen, `/healthz`-endpoint geverifieerd in de browser ("ok"-response). Hiermee is de leidingenloop bewezen vóór er functionaliteit verschoof. Volgende: stap 1b — postcode-vervanging in `server.py`.
+
+### F2.1 — Railway PR Previews als veiligheidsmechanisme
+
+Voor alle services binnen project helpful-manifestation (admin-portal, en straks ook andere) is in Railway PR Environments aangezet (Project Settings → Environments → 'Enable PR Environments'). Base environment: 'No base environment' (Railway pakt automatisch production-variabelen). Focused PR Environments is UITGEZET na eerste test (zie ontdekking hieronder).
+
+Werkwijze voor élke strangler-stap vanaf nu:
+1. Branch maken in Claude Code, pushen naar GitHub
+2. Pull Request openen op GitHub (base: main, compare: feature-branch)
+3. Railway maakt automatisch PR-environment aan (admin-portal-pr-N)
+4. Build + healthcheck draaien in PR-environment — productie wordt niet aangeraakt
+5. Pas na groen vinkje + functionele check op de preview-URL: PR mergen naar main → Railway deployt naar productie
+6. PR sluiten → Railway ruimt PR-environment automatisch op
+
+Ontdekking: 'Focused PR Environments' (credit-besparende feature die alleen geraakte services deployt) markeerde de admin-portal-service bij PR #1 als 'Not affected by PR' terwijl er wel relevante wijzigingen waren (requirements.txt, tests/, CLAUDE.md). Work-around: handmatig op 'Deploy' klikken op de service-card binnen de PR-environment. Definitieve oplossing: Focused PR Environments UITgezet (geen verspilling want momenteel maar 1 service per project). Bij meerdere services later: heroverwegen of Watch Paths (*.py, requirements.txt, railway.toml) een betere route is.
 
 **F2.2 (daarna):** eerste functie in de admin-portal vervangen door een core-aanroep (strangler-aanpak: één functie tegelijk, output vergelijken, pas dan de oude kopie verwijderen).
 
@@ -433,5 +453,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.9 | 1 juni 2026 | Module 7 (agenda_format) klaar en getest (17/17) — **daarmee is de hele core (Modules 1–7) af: 143/143 tests groen.** Vaste Outlook-opmaak losgekoppeld van de generieke agenda-laag: pure functie opmaak_opname levert titel + HTML-body + locatie + herinnering; agenda weet *hoe*, agenda_format weet *wat*. Klantinvoer wordt HTML-veilig gemaakt. H9.3-titel gelijkgetrokken met de gekozen oude-stijl (klantnaam + m² + Amsterdamse tijden) i.p.v. de eerdere adres-variant. Fundament-fase F1 afgerond; volgende fase is F2 (instroom-tools op de core trekken). |
 | 4.10 | 1 juni 2026 | Module 8 (events) toegevoegd aan de core en getest (16/16) — totaal 159/159. Centrale append-only logging als fundament voor het dashboard (H6): schrijf_event + lees_events (filters op module/vbo_id/resultaat/niveau/sinds/limiet, nieuwste eerst), bovenop storage als JSONL. Vast event-formaat vastgelegd in H4.2; resultaat (gelukt/mislukt/in_uitvoering) en niveau (info/waarschuwing/kritiek) zijn strikt — geen vrije tekst — zodat het dashboard betrouwbaar kan filteren/kleuren. Opslag achter één interne functie, zodat beslispunt B1 (echte DB) later in te schuiven is. |
 | 4.11 | 1 juni 2026 | F2.0 afgerond — energiemeneer-core is nu installeerbaar als Python-package via pip (energiemeneer-core @ git+...). pyproject.toml uitgebreid met tzdata-dependency. Schone-venv-test bewees correcte installatie inclusief Amsterdamse tijdzone-conversie. Bevinding vastgelegd: Railway-GitHub-app heeft 'All repositories'-toegang op het Keviniom-account, dus geen extra configuratie nodig voor F2.1. Volgende: F2.2 — eerste functie in admin-portal door core-aanroep vervangen (strangler-aanpak). |
+| 4.12 | 1 juni 2026 | F2 gestart en eerste plumbing-stap (1a) bewezen op Railway. PR Environments aangezet in Railway Project Settings voor automatische preview-deployments per Pull Request. Branch core-integratie-stap1a → PR #1 op admin-portal-repo → PR-environment admin-portal-pr-1: Nixpacks-build slaagde, energiemeneer-core 0.1.0 schoon geïnstalleerd vanaf publieke GitHub-tag (anoniem bereikbaar zonder credentials), healthcheck groen, /healthz endpoint geverifieerd in browser. Werkwijze voor alle toekomstige strangler-stappen vastgelegd in nieuwe sectie F2.1. Ontdekking: 'Focused PR Environments' markeerde service als niet-geraakt (work-around: handmatige Deploy; definitief opgelost door Focused uit te zetten — werkt prima met 1 service per project). Aantekening toegevoegd: Docker-warning over secrets in ARG/ENV hoort bij secret-rotatie H8.3. Volgende: stap 1b — postcode-vervanging in server.py, opnieuw via PR-flow. |
 
 *— Einde document —*
