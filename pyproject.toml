@@ -14,6 +14,10 @@ authors = [
 ]
 dependencies = [
     "requests>=2.31",
+    # zoneinfo is standaard in Python, maar de tijdzone-gegevens zelf
+    # ontbreken soms op kale Linux-containers (Railway) en op Windows.
+    # tzdata garandeert dat 'Europe/Amsterdam' overal werkt (agenda_format).
+    "tzdata",
 ]
 
 [project.optional-dependencies]
