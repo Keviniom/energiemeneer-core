@@ -55,6 +55,12 @@ genummerde variant. Het versienummer leeft alleen in de tabel bovenin het
 document. Bij een wijziging: hoog dat nummer op en voeg een regel toe aan de
 versiehistorie. Lever altijd terug onder dezelfde naam.
 
+**Eén bron, live gekoppeld:** `Meesterbrein.md` leeft op één plek — in deze
+repo. Het gekoppelde Claude Project leest **live vanuit GitHub**, dus na een
+push hoeft Kevin niets handmatig te uploaden of te vervangen in het Claude
+Project. Schrijf dus **NIET** in slot-/afsluitmeldingen dat hij het bestand
+ergens anders moet vervangen — dat is verouderd advies.
+
 ## Git
 
 - Commit na elke afgeronde, geteste module met een duidelijke NL-boodschap.
