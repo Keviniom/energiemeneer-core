@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.10 |
+| **Versie** | 4.11 |
 | **Laatst bijgewerkt** | 1 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -53,7 +53,11 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 **Omgeving:** Claude Code geïnstalleerd op Windows via WSL/Ubuntu. Oude tools staan als leesbron in `OneDrive/1. Werkmap/Claude/Automatiseringstools` (alleen lezen). Geen API-keys in de nieuwe code — alles via env-vars. Oude hardcoded keys (BAG ×2, EP ×1) moeten nog geroteerd worden (zie H8.3).
 
-**Volgende stap:** De core is volledig af en getest (Modules 1–8, 159/159). Naast het fundament uit fase F1 is nu ook de centrale logging (Module 8 events) gebouwd — de basis waar het dashboard (H6) straks uit leest. Volgende fase: F2 — Aanmeldformulier + Admin Portal op de core trekken (lokale kopieën vervangen door imports uit de core; strangler-aanpak: één tool tegelijk, output vergelijken, pas dan de oude kopie verwijderen). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+**Bevinding voor toekomst:** Railway-account 'keviniom' heeft via de GitHub-app Repository access = All repositories ingesteld. Railway kan dus zonder extra configuratie bij alle huidige én toekomstige repos in het Keviniom-account, inclusief private repos zoals energiemeneer-core. Geldt ook voor de geïnstalleerde Anthropic Claude GitHub-app.
+
+**Fase 2 (F2) — instroom-tools op de core:** ✅ **F2.0 klaar** — `energiemeneer-core` is installeerbaar als Python-package via pip. Volgende stap: F2.1/F2.2 (zie H10.2).
+
+**Volgende stap:** De core is volledig af en getest (Modules 1–8, 159/159) én installeerbaar (F2.0). Volgende fase: F2.2 — in de admin-portal de eerste functie laten leunen op de core (strangler-aanpak: één functie tegelijk vervangen door een core-aanroep, output vergelijken, pas dan de oude kopie verwijderen). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
 **Aantekeningen voor later (consolidatie):**
 - Mail lézen + bijlagen ophalen (voor Job B/Uploadtool) — bron is `outlook_handler.py`.
@@ -390,8 +394,8 @@ Deze volgorde wijkt bewust af van de oude roadmap (waar de Klant-Index P2 was en
 | **Fase** | **Wat** | **Waarom hier** | **Status** |
 | --- | --- | --- | --- |
 | F0 | Secrets opschonen + repo’s taggen | Veiligheid; natuurlijk moment vóór verhuizing | Direct |
-| F1 | energiemeneer-core extraheren (storage, auth, graph, bag, ep, prijs, agenda) | Fundament; maakt al het andere goedkoper; lost K2+K4 op | Te starten |
-| F2 | Fusie Aanmeldformulier + Admin Portal op de core | Één instroom-backend, één login, één token; lost K3 deels op | Na F1 |
+| F1 | energiemeneer-core extraheren (storage, auth, graph, bag, ep, prijs, agenda) | Fundament; maakt al het andere goedkoper; lost K2+K4 op | ✅ Klaar (Modules 1–8, 159/159 tests) |
+| F2 | Fusie Aanmeldformulier + Admin Portal op de core | Één instroom-backend, één login, één token; lost K3 deels op | 🔧 Mee bezig (F2.0 klaar, zie H10.2) |
 | F3 | Verhuizing naar eigen hosting + portal-schil | Einddoel: alles binnenshuis, één online werkomgeving | Na F2 |
 | F4 | Centrale datalaag + dashboard (status/logs/fouten) | Overzicht over alles; lost K1+K3 volledig op | Na F3 |
 | F5 | Job A + Job B online aansturen vanuit platform | De grote tijdwinst, nu op schoon fundament | Na F4 |
@@ -402,6 +406,14 @@ Deze volgorde wijkt bewust af van de oude roadmap (waar de Klant-Index P2 was en
 ## 10.1 Wat dit oplevert voor het hoofddoel
 
 De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. Een wijziging die nu 3–5× moet, hoeft straks één keer. Job A bouwen op een schoon fundament is sneller en minder bug-gevoelig dan op vijf eilanden. Het platform maakt elke volgende uitbreiding (VvE, advies) een module in plaats van een nieuw eiland — zo blijft de automatisering productietijd vrijspelen richting het hoofddoel.
+
+## 10.2 F2 — voortgang in onderdelen
+
+**F2.0 Installeerbaar maken (1 juni 2026):** pyproject.toml in de core gevuld met tzdata-dependency (msal niet nodig — graph_auth regelt tokens zelf via requests). Setuptools als builder. Schone-venv-test geslaagd: pip install . in verse venv, alle imports werken, tzdata bewijst Amsterdamse tijdzone-conversie (UTC 13:30 → AMS 15:30 +zomertijd), geen testbestanden in site-packages.
+
+**F2.1 (volgende):** core als dependency opnemen in de admin-portal (`energiemeneer-core @ git+...`); Railway kan bij de private repo dankzij de 'All repositories'-toegang van de GitHub-app (zie Bevinding in H0a).
+
+**F2.2 (daarna):** eerste functie in de admin-portal vervangen door een core-aanroep (strangler-aanpak: één functie tegelijk, output vergelijken, pas dan de oude kopie verwijderen).
 
 # 11. Versiehistorie
 
@@ -420,5 +432,6 @@ De tijdwinst zit niet in één moment, maar in alles wat erna goedkoper wordt. E
 | 4.8 | 1 juni 2026 | Module 6 onderdeel 5 onenote klaar en getest (12/12) — daarmee is graph_api volledig af (51/51 tests). Generieke kopieer_sjabloonpagina: notitieboek-, sectie- en sjabloonnaam losgemaakt tot parameters (geen ingebakken "De Energiemeneer"/"Opnames"/"Adres" meer). Twee fragiliteiten opgeschoond: (1) async copyToSection wacht nu op de operatie-statuslink i.p.v. een blinde sleep + gokken welke pagina de kopie is; (2) ontbrekende sjabloon geeft standaard een duidelijke fout — een lege pagina wordt alleen op expliciet verzoek (maak_lege_bij_ontbreken=True) aangemaakt, geen stille fallback meer. Volgende: Module 7 (agenda_format). |
 | 4.9 | 1 juni 2026 | Module 7 (agenda_format) klaar en getest (17/17) — **daarmee is de hele core (Modules 1–7) af: 143/143 tests groen.** Vaste Outlook-opmaak losgekoppeld van de generieke agenda-laag: pure functie opmaak_opname levert titel + HTML-body + locatie + herinnering; agenda weet *hoe*, agenda_format weet *wat*. Klantinvoer wordt HTML-veilig gemaakt. H9.3-titel gelijkgetrokken met de gekozen oude-stijl (klantnaam + m² + Amsterdamse tijden) i.p.v. de eerdere adres-variant. Fundament-fase F1 afgerond; volgende fase is F2 (instroom-tools op de core trekken). |
 | 4.10 | 1 juni 2026 | Module 8 (events) toegevoegd aan de core en getest (16/16) — totaal 159/159. Centrale append-only logging als fundament voor het dashboard (H6): schrijf_event + lees_events (filters op module/vbo_id/resultaat/niveau/sinds/limiet, nieuwste eerst), bovenop storage als JSONL. Vast event-formaat vastgelegd in H4.2; resultaat (gelukt/mislukt/in_uitvoering) en niveau (info/waarschuwing/kritiek) zijn strikt — geen vrije tekst — zodat het dashboard betrouwbaar kan filteren/kleuren. Opslag achter één interne functie, zodat beslispunt B1 (echte DB) later in te schuiven is. |
+| 4.11 | 1 juni 2026 | F2.0 afgerond — energiemeneer-core is nu installeerbaar als Python-package via pip (energiemeneer-core @ git+...). pyproject.toml uitgebreid met tzdata-dependency. Schone-venv-test bewees correcte installatie inclusief Amsterdamse tijdzone-conversie. Bevinding vastgelegd: Railway-GitHub-app heeft 'All repositories'-toegang op het Keviniom-account, dus geen extra configuratie nodig voor F2.1. Volgende: F2.2 — eerste functie in admin-portal door core-aanroep vervangen (strangler-aanpak). |
 
 *— Einde document —*
