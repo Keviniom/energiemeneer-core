@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.15 |
+| **Versie** | 4.16 |
 | **Laatst bijgewerkt** | 3 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -81,6 +81,67 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - Testknop op `/instellingen` die een admin-notificatie stuurt zónder een afspraak in te plannen — spaart tijd bij elke mail-gerelateerde wijziging. Eigen PR, geen onderdeel van de strangler.
 - Productie `/instellingen` controleren: vermoedelijk staan de bedrijfsgegevens daar net zo leeg/fout als op de preview vóór de fix. Bij het eerstvolgende productie-bezoek invullen (email, telefoon, website, KvK, BTW).
 - Agenda-titel-opmaak migreren naar `core.agenda_format`: vandaag is in `admin-portal/ms_graph.py` alleen een lokale typo-fix gedaan (`%H%M` → `%H:%M`). De volledige titel-opbouw hoort straks vervangen te worden door `agenda_format.opmaak_opname()` — plan voor een latere strangler-stap, niet nu.
+
+# 0b. Werkwijze — drie rollen, één doel
+
+> Waar H0a vertelt wáár het project staat, vertelt H0b hóé eraan gewerkt
+> wordt. Lees beide vooraf: dan weet elke nieuwe chat, elke Claude
+> Code-sessie en elke nieuwe collega niet alleen de stand van zaken, maar
+> ook wie welke pet op heeft.
+
+Dit platform wordt gebouwd door een driehoek. Geen hiërarchie van baas naar
+ondergeschikte, maar drie rollen die elkaar aanvullen en bewaken. Elke rol is
+een vangnet voor de volgende: de chat voorkomt dat aan de verkeerde dingen
+wordt begonnen, Claude Code voorkomt dat ongeteste of onbesproken code wordt
+vastgelegd, en Kevin houdt de eindregie. Wie de prompt typt of in welke
+volgorde het loopt, ligt níét rigide vast — de rolverdeling wel.
+
+## De drie rollen
+
+| **Rol** | **Wie/wat** | **Doet** | **Vangnet** |
+| --- | --- | --- | --- |
+| **Strateeg / gids** | Claude in de chat | Bewaart de strategische context (Meesterbrein-kennis) en het *waarom* achter eerdere keuzes. Stelt plannen op vóór er code is. Formuleert prompts voor Claude Code (Kevin mag dat ook rechtstreeks). Reviewt wat Claude Code rapporteert en biedt alternatieven. | Eerste vangnet — voorkomt dat aan het verkeerde wordt begonnen. |
+| **Developer met eigen inzicht** | Claude Code (terminal) | Voert het technische werk uit: lezen, schrijven, testen, committen, pushen. Kent de repo-structuur en de concrete code. Toont diff's vóór akkoord. **Mag en moet eigen, slimmere oplossingen voorstellen** wanneer Kevins of de chat's voorstel niet de beste route is — mits expliciet benoemd wát beter is en waaróm, zodat Kevin bewust kan kiezen. | Tweede vangnet — vraagt akkoord vóór commit/push. |
+| **Eigenaar / beslisser** | Kevin | Bepaalt de strategische richting en neemt de eindbeslissingen. Reviewt zowel de plannen van de chat als de uitvoering van Claude Code. Doet de functionele test op de Railway PR-preview en geeft akkoord voor de merge naar productie. | Laatste woord — niets gaat live zonder zijn go. |
+
+De rol "developer met eigen inzicht" is bewust geen "uitvoerder". Claude Code
+denkt mee en mag tegenspreken; dat het eigen, betere routes voorstelt is geen
+overschrijding maar de bedoeling (zie ook H6a, waar dit principe voor het
+oplossen van frictiepunten al staat). Dezelfde rol geldt voor een menselijke
+collega-developer (zie ONBOARDING.md).
+
+## Werkstromen — vier varianten, niet rigide
+
+De volgorde hieronder is een richtlijn, geen keurslijf. Kies de lichtste vorm
+die bij de taak past.
+
+1. **Grote feature of migratie.** Kevin → plan in de chat → prompt → Claude Code
+   → diff + test → akkoord Kevin → commit → preview-test op Railway → merge.
+   (Canoniek voorbeeld: F2 Stap 1b, de postcode-vervanging — zie H10.2.)
+
+2. **Vervolgstap binnen lopend werk.** Claude Code rapporteert → Kevin stuurt
+   dat door naar de chat → de chat adviseert de vervolgprompt → Kevin plakt die
+   → Claude Code voert uit. Een loop die doordraait tot het werk af is.
+
+3. **Kleine bugfix of losse uitvoering.** Kevin gaat direct naar Claude Code,
+   zonder tussenstop bij de chat. Claude Code voert uit, Kevin reviewt op de
+   PR-preview.
+
+4. **Eigen inzicht van Claude Code.** Ziet Claude Code tijdens het werk iets
+   beters, dan benoemt het dat expliciet ("ik stel X voor in plaats van Y,
+   omdat …") en wacht op Kevins beslissing. Een triviale verbetering mag het
+   meteen meenemen, mits met een heldere melding ("zo geïnterpreteerd: …").
+
+## Niet-onderhandelbaar
+
+- **Geen push naar `main`/`master` zonder akkoord van Kevin** — geldt voor
+  Claude Code én voor elke collega.
+- **Geen merge naar productie zonder een bewezen functionele test op de
+  PR-preview.**
+- **Bij twijfel: vraag het. Blokkeer niet, sloop geen werkende code, forceer
+  geen merge.** Een open vraag is goedkoper dan een teruggedraaide deploy.
+- **Bouw geen deuren dicht** — houd waar het weinig kost rekening met de
+  schaal-ambitie (zie H1a Schaal-horizon).
 
 # 1. Visie en hoofddoel
 
@@ -529,5 +590,7 @@ De eerste functie in de admin-portal is vervangen door een core-aanroep (postcod
 | 4.13 | 1 juni 2026 | F2 Stap 1b (postcode-vervanging) gemerged naar main — admin-portal draait nu in productie op core.bag.normaliseer_postcode. Bonus-oogst meegenomen in dezelfde PR: (a) domein-typo overal gefixt naar de-energiemeneer.nl met streepje (instellingen.py, email_templates.py, klant_portaal.html), (b) agenda-titel toont nu netjes 'HH:MM en HH:MM uur' met dubbele punten in plaats van 'HHMM en HHMM uur'. Nieuwe sectie F2.2 toegevoegd met geleerde patronen (1a/1b-splitsing, bevroren ijkpunt-test, hardcoded vs persistent instellingen, bonus-fix-regel, merge-vanuit-Claude-Code). Aandachtspunten toegevoegd: testknop bouwen, productie-instellingen checken, agenda-format-migratie als latere strangler-stap. Volgende: F2 Stap 2 — bereken_prijs op de core trekken volgens hetzelfde patroon. |
 | 4.14 | 3 juni 2026 | Strategische roadmap-wijziging — uitvoeringsvolgorde van F3-F6 omgegooid op verzoek van Kevin. Intake + Upload online modules (was F6) opgewaardeerd naar F3 omdat het directe productiviteitswinst levert. Verhuizing naar eigen hosting (was F3) verschoven naar F6 — pas nadat alle tools draaien en jobs lopen. Hernummering: oude F3↔F6 omgewisseld; F4, F5, F7, F8 ongewijzigd. Alle interne kruisverwijzingen in het document gelijkgetrokken. Korte toelichting boven H10-tabel toegevoegd. |
 | 4.15 | 3 juni 2026 | **Twee toevoegingen.** (1) Nieuwe sectie H6a — Productieve frictie: levende lijst van 9 dagelijkse irritaties uit Kevin's werk, gecategoriseerd (bug / proces / UI-feature / data-integratie) en gekoppeld aan welke fase ze structureel oplost. Twee punten (bovenaanzicht in admin-portal, spoedbox bij afspraak) gemarkeerd als geschikt voor de nieuwe collega. Tijdformaat-bug (HHMM→HH:MM) uit PR #1 erkend als opgelost; puntsafspraak-bug voor 09:00 nog te bevestigen. Belangrijk toegevoegd principe: Claude en collega mogen eigen slimmere oplossingen voorstellen bij het oplossen van punten — Kevin's beschrijving dekt het probleem, niet noodzakelijk de beste oplossing. (2) Nieuwe sectie H1a — Schaal-horizon: schaal-ambitie vastgelegd (multi-user voor intern personeel met rollen, en abonnementsvorm voor concullega's). Expliciet géén fase en geen wijziging aan F1–F8, maar input voor architectuur-keuzes die nu al spelen: multi-user auth-laag, per-tenant datalaag (F4), multi-tenant hosting (F6) en een toekomstige pricing/billing-module (Stripe, mogelijke SnelStart-koppeling). |
+
+| 4.16 | 3 juni 2026 | **Werkwijze expliciet vastgelegd in drie bestanden.** Nieuwe sectie H0b — Werkwijze (drie rollen, één doel): de samenwerkingsdriehoek tussen Claude in de chat (strateeg/gids), Claude Code (developer met eigen inzicht) en Kevin (eigenaar/beslisser), met een rollentabel, vier niet-rigide werkstromen en de niet-onderhandelbare regels (geen push naar main zonder akkoord, geen merge zonder bewezen preview-test, bij twijfel vragen, geen deuren dichtbouwen). CLAUDE.md uitgebreid met "Jouw rol als Claude Code" (developer met eigen inzicht, mag/moet slimmere oplossingen voorstellen, strategie via Kevin). ONBOARDING.md §3 uitgebreid met de driehoek en de plek van de nieuwe collega (óók developer met eigen inzicht). Kruisverwijzingen naar H6a (eigen-inzicht-principe) en H1a (bouw geen deuren dicht) i.p.v. duplicatie. |
 
 *— Einde document —*

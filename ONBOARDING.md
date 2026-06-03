@@ -74,6 +74,18 @@ Vuistregel: een vraag over *waarom* iets zo is → `Meesterbrein.md`. Een vraag
 over *hoe* de core gebouwd wordt → `BOUWPLAN.md`. Een vraag over *hoe je inhaakt*
 → dit document.
 
+Naast de documenten bestaat er een **samenwerkingsdriehoek**: **Claude in de
+chat** (strateeg/gids — bewaart de Meesterbrein-context en maakt plannen),
+**Claude Code** (de developer in de terminal — voert uit, test, pusht en denkt
+actief mee) en **Kevin** (eigenaar/beslisser — eindregie, review en merge).
+
+Waar val jij in? Je bent — net als Claude Code — een **developer met eigen
+inzicht**: je voert uit, reviewt, en je mag (graag zelfs) beargumenteerd
+betere routes voorstellen, met Kevin als eigenaar/beslisser. De chat-Claude is
+vooral Kevins strategische sparringpartner; jij hoeft daar niet doorheen te
+werken voor concreet ontwikkelwerk. De volledige rolverdeling staat in
+**Meesterbrein H0b — Werkwijze**.
+
 ---
 
 ## 4. De strangler-migratie (huidige fase F2)
