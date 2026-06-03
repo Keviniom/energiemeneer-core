@@ -45,7 +45,7 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 | 1. storage | ✅ Klaar | Atomic JSON-opslag, pad-detectie, lock. 9/9 tests groen. |
 | 2. bag | ✅ Klaar | Adres- + vrij zoeken (BAG + PDOK). 12/12 tests groen. |
 | 3. ep_online | ✅ Klaar | Label-status via VBO of adres. 10/10 tests groen. |
-| 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. |
+| 4. prijs | ✅ Klaar | Prijsmatrix incl. spoed + maatwerk. 31/31 tests groen. Uitgebreid in **v0.2.0** met publieke drempelwaarden + helpers (`krijg_matrix`, `is_nieuwbouw`, `NIEUWBOUW_JAAR_VANAF`, `MAATWERK_BOVEN_M2`) zodat consumers geen eigen prijs-feiten meer hoeven te kennen. |
 | 5. graph_auth | ✅ Klaar | Microsoft-token: public client, refresh-rotatie in token_persist.json, ntfy-noodmelding bij verlopen koppeling. 13/13 tests groen. |
 | 6. graph_api | ✅ Klaar | Alle onderdelen af: ✅ agenda, ✅ mail, ✅ onedrive, ✅ todo, ✅ onenote. 51/51 tests groen. |
 | 7. agenda_format | ✅ Klaar | Vaste Outlook-opmaak losgekoppeld van de agenda-laag. 17/17 tests groen. |
@@ -62,9 +62,9 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - ✅ **F2.2 Stap 1a (plumbing)** — core als dependency + postcode-test, géén gedragsverandering. Bewezen op Railway PR-environment `admin-portal-pr-1`.
 - ✅ **F2.2 Stap 1b (postcode-vervanging)** — `normaliseer_postcode` in `server.py` vervangen door `core.bag.normaliseer_postcode`, lokale duplicaat verwijderd. **Gemerged naar main; productie draait nu op de core voor postcode-normalisatie.**
 - ✅ **Bonus-fixes meegenomen in dezelfde PR (#1):** domein-typo overal gefixt naar `de-energiemeneer.nl` (met streepje — de admin-notificatie bouncede op het niet-bestaande adres zonder streepje) en tijdformaat-fix (agenda-titel toont nu "13:00 en 14:30 uur" met dubbele punten i.p.v. "1300").
-- ⬜ **Volgende: Stap 2** — `bereken_prijs` op de core trekken volgens hetzelfde patroon (eerst plan, dan branch → PR → preview-test → merge).
+- ⬜ **Volgende: Stap 2** — `bereken_prijs` op de core trekken volgens hetzelfde patroon (eerst plan, dan branch → PR → preview-test → merge). De core is hiervoor voorbereid: tag **v0.2.0** levert `bereken_prijs` plus publieke drempelwaarden + helpers (`krijg_matrix`, `is_nieuwbouw`, `NIEUWBOUW_JAAR_VANAF`, `MAATWERK_BOVEN_M2`), zodat de admin-portal-adapter géén eigen jaartal, grens of tarief meer kent. Stap 2 draait tegen v0.2.0.
 
-**Volgende stap:** Stap 2 — in de admin-portal de lokale prijsberekening vervangen door `core.prijs.bereken_prijs` (met een kleine output-adapter voor de bestaande frontend-keys), via dezelfde branch → PR → Railway PR-environment-flow (H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+**Volgende stap:** Stap 2 — in de admin-portal de lokale prijsberekening vervangen door `core.prijs.bereken_prijs` (met een kleine output-adapter voor de bestaande frontend-keys), tegen tag **v0.2.0**. De adapter kent dankzij die release géén prijs-feiten meer — geen jaartal, geen grens, geen tarief; alles komt uit `core.prijs` (`krijg_matrix`, `is_nieuwbouw`, de drempelconstanten). Via dezelfde branch → PR → Railway PR-environment-flow (H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
 📌 Sinds versie 4.15 bestaat er een levende frictielijst (sectie H6a — Productieve frictie). Bevat 9 punten (1 deels opgelost, 8 open); gebruik als input bij elke prioriteringskeuze.
 
