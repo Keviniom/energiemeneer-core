@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| **Versie** | 4.13 |
-| **Laatst bijgewerkt** | 1 juni 2026 |
+| **Versie** | 4.14 |
+| **Laatst bijgewerkt** | 3 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
 
@@ -36,7 +36,7 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 > Deze sectie houdt de actuele voortgang bij, zodat elke nieuwe chat en elke Claude Code-sessie meteen weet waar het project staat. Werk dit bij zodra een module of fase verandert.
 
-**Laatst bijgewerkt:** 1 juni 2026
+**Laatst bijgewerkt:** 3 juni 2026
 
 **Fundament — `energiemeneer-core`** (Python-library, draait via Claude Code in de map `energiemeneer-core`, op GitHub/lokaal):
 
@@ -65,6 +65,8 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - ⬜ **Volgende: Stap 2** — `bereken_prijs` op de core trekken volgens hetzelfde patroon (eerst plan, dan branch → PR → preview-test → merge).
 
 **Volgende stap:** Stap 2 — in de admin-portal de lokale prijsberekening vervangen door `core.prijs.bereken_prijs` (met een kleine output-adapter voor de bestaande frontend-keys), via dezelfde branch → PR → Railway PR-environment-flow (H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+
+📌 **Roadmap-volgorde gewijzigd in versie 4.14 (3 juni 2026):** de uitvoeringsvolgorde van F3 t/m F6 is omgegooid. Oude F6 (Intake + Upload als online modules) is opgewaardeerd naar F3, en oude F3 (verhuizing naar eigen hosting) is verschoven naar F6 — pas nadat alle tools draaien en de jobs lopen. Zie H10 voor de volledige tabel en toelichting.
 
 **Aantekeningen voor later (consolidatie):**
 - Docker-waarschuwing tijdens Railway-build: secrets via ARG/ENV in Dockerfile/railway.toml (ADMIN_PASSWORD, EP_ONLINE_KEY, MS_CLIENT_SECRET, MS_REFRESH_TOKEN, OVERHEID_API_KEY, SECRET_KEY). Geen build-fout, maar wel best-practice-schuld. Hoort opgeruimd te worden samen met de secret-rotatie van H8.3.
@@ -402,15 +404,17 @@ Sleutel = VBO-ID. Elk veld heeft één eigenaar-module (write authority) om conf
 
 Deze volgorde wijkt bewust af van de oude roadmap (waar de Klant-Index P2 was en consolidatie nergens stond). De reden: er staat drievoudig-gedupliceerde logica en een structureel auth-probleem onder de motorkap. Elke nieuwe feature die daar bovenop komt, vermenigvuldigt die schuld. Daarom: eerst het fundament leggen, dan pas uitbreiden.
 
+> **Toelichting volgordewijziging (versie 4.14, 3 juni 2026):** verhuizing naar eigen hosting (oude F3) is verschoven naar het einde omdat het een infrastructuur-verandering is zonder directe productiviteitswinst. Eerst alle tools op de core (oude F6, nu F3), dan de datalaag en jobs draaiend krijgen — dat levert de échte tijdwinst voor het hoofddoel. Verhuizing kan daarna in alle rust.
+
 | **Fase** | **Wat** | **Waarom hier** | **Status** |
 | --- | --- | --- | --- |
 | F0 | Secrets opschonen + repo’s taggen | Veiligheid; natuurlijk moment vóór verhuizing | Direct |
 | F1 | energiemeneer-core extraheren (storage, auth, graph, bag, ep, prijs, agenda) | Fundament; maakt al het andere goedkoper; lost K2+K4 op | ✅ Klaar (Modules 1–8, 159/159 tests) |
 | F2 | Fusie Aanmeldformulier + Admin Portal op de core | Één instroom-backend, één login, één token; lost K3 deels op | 🔧 Mee bezig (F2.0 klaar, zie H10.2) |
-| F3 | Verhuizing naar eigen hosting + portal-schil | Einddoel: alles binnenshuis, één online werkomgeving | Na F2 |
+| F3 | Intake + Upload als online modules op de core | Tools op de core; directe productiviteitswinst voor het hoofddoel | Na F2 |
 | F4 | Centrale datalaag + dashboard (status/logs/fouten) | Overzicht over alles; lost K1+K3 volledig op | Na F3 |
 | F5 | Job A + Job B online aansturen vanuit platform | De grote tijdwinst, nu op schoon fundament | Na F4 |
-| F6 | Intake + Upload als online modules op de core | Volledige integratie pijplijn | Na F5 |
+| F6 | Verhuizing naar eigen hosting + portal-schil | Infrastructuur-stap zónder directe productiviteitswinst; kan ná alle tools/jobs | Na F5 |
 | F7 | VvE-module met web-UI + advies-trajecten | Verbreding naar VvE/advies; volgende omzetstroom | Later |
 | F8 | SnelStart-koppeling (Make.com) + EP-Online API v5 | Facturatie- en label-status-automatisering | Te verkennen |
 
@@ -472,5 +476,6 @@ De eerste functie in de admin-portal is vervangen door een core-aanroep (postcod
 | 4.11 | 1 juni 2026 | F2.0 afgerond — energiemeneer-core is nu installeerbaar als Python-package via pip (energiemeneer-core @ git+...). pyproject.toml uitgebreid met tzdata-dependency. Schone-venv-test bewees correcte installatie inclusief Amsterdamse tijdzone-conversie. Bevinding vastgelegd: Railway-GitHub-app heeft 'All repositories'-toegang op het Keviniom-account, dus geen extra configuratie nodig voor F2.1. Volgende: F2.2 — eerste functie in admin-portal door core-aanroep vervangen (strangler-aanpak). |
 | 4.12 | 1 juni 2026 | F2 gestart en eerste plumbing-stap (1a) bewezen op Railway. PR Environments aangezet in Railway Project Settings voor automatische preview-deployments per Pull Request. Branch core-integratie-stap1a → PR #1 op admin-portal-repo → PR-environment admin-portal-pr-1: Nixpacks-build slaagde, energiemeneer-core 0.1.0 schoon geïnstalleerd vanaf publieke GitHub-tag (anoniem bereikbaar zonder credentials), healthcheck groen, /healthz endpoint geverifieerd in browser. Werkwijze voor alle toekomstige strangler-stappen vastgelegd in nieuwe sectie F2.1. Ontdekking: 'Focused PR Environments' markeerde service als niet-geraakt (work-around: handmatige Deploy; definitief opgelost door Focused uit te zetten — werkt prima met 1 service per project). Aantekening toegevoegd: Docker-warning over secrets in ARG/ENV hoort bij secret-rotatie H8.3. Volgende: stap 1b — postcode-vervanging in server.py, opnieuw via PR-flow. |
 | 4.13 | 1 juni 2026 | F2 Stap 1b (postcode-vervanging) gemerged naar main — admin-portal draait nu in productie op core.bag.normaliseer_postcode. Bonus-oogst meegenomen in dezelfde PR: (a) domein-typo overal gefixt naar de-energiemeneer.nl met streepje (instellingen.py, email_templates.py, klant_portaal.html), (b) agenda-titel toont nu netjes 'HH:MM en HH:MM uur' met dubbele punten in plaats van 'HHMM en HHMM uur'. Nieuwe sectie F2.2 toegevoegd met geleerde patronen (1a/1b-splitsing, bevroren ijkpunt-test, hardcoded vs persistent instellingen, bonus-fix-regel, merge-vanuit-Claude-Code). Aandachtspunten toegevoegd: testknop bouwen, productie-instellingen checken, agenda-format-migratie als latere strangler-stap. Volgende: F2 Stap 2 — bereken_prijs op de core trekken volgens hetzelfde patroon. |
+| 4.14 | 3 juni 2026 | Strategische roadmap-wijziging — uitvoeringsvolgorde van F3-F6 omgegooid op verzoek van Kevin. Intake + Upload online modules (was F6) opgewaardeerd naar F3 omdat het directe productiviteitswinst levert. Verhuizing naar eigen hosting (was F3) verschoven naar F6 — pas nadat alle tools draaien en jobs lopen. Hernummering: oude F3↔F6 omgewisseld; F4, F5, F7, F8 ongewijzigd. Alle interne kruisverwijzingen in het document gelijkgetrokken. Korte toelichting boven H10-tabel toegevoegd. |
 
 *— Einde document —*
