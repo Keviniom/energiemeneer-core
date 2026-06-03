@@ -118,3 +118,41 @@ def test_default_geen_spoed_geen_nieuwbouw():
 def test_constante_publiek():
     """Spoedtoeslag is publiek beschikbaar voor consumers (factuur etc.)."""
     assert prijs.SPOEDTOESLAG_EUR == 30
+
+
+# --- Publieke helpers voor consumers (admin-portal) --------------------------
+
+@pytest.mark.parametrize("bouwjaar,verwacht", [
+    (None, False),
+    (2020, False),
+    (2021, True),
+    (2024, True),
+    (0,    False),
+])
+def test_is_nieuwbouw(bouwjaar, verwacht):
+    assert prijs.is_nieuwbouw(bouwjaar) is verwacht
+
+
+def test_krijg_matrix_structuur_en_waarden():
+    """krijg_matrix levert de matrix als JSON-vriendelijke data."""
+    m = prijs.krijg_matrix()
+
+    assert m["maatwerk_boven_m2"] == 200
+    assert m["spoedtoeslag_eur"] == 30
+
+    tarieven = m["tarieven"]
+    assert len(tarieven) == 3
+    assert tarieven == [
+        {"max_m2": 100, "categorie": "tot_100", "label": "Tot 100 m²",
+         "bestaand": 280, "nieuwbouw": 425},
+        {"max_m2": 150, "categorie": "100_150", "label": "100–150 m²",
+         "bestaand": 315, "nieuwbouw": 460},
+        {"max_m2": 200, "categorie": "150_200", "label": "150–200 m²",
+         "bestaand": 355, "nieuwbouw": 500},
+    ]
+
+
+def test_drempelwaarden_regressie():
+    """Onbedoelde wijziging van een drempelwaarde moet hard opvallen."""
+    assert prijs.NIEUWBOUW_JAAR_VANAF == 2021
+    assert prijs.MAATWERK_BOVEN_M2 == 200

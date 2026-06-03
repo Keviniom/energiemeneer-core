@@ -21,6 +21,58 @@ _MATRIX = (
 )
 SPOEDTOESLAG_EUR = 30
 
+# Publieke drempelwaarden — één bron, ook voor consumers (admin-portal e.d.).
+# Bouwjaar vanaf dit jaar telt als nieuwbouw (Meesterbrein §9.1: "Nieuwbouw ≥2021").
+NIEUWBOUW_JAAR_VANAF = 2021
+# Oppervlakte (in m²) waarboven een opname maatwerk wordt i.p.v. een vaste prijs.
+MAATWERK_BOVEN_M2 = 200
+
+
+def is_nieuwbouw(bouwjaar: int | None) -> bool:
+    """Bepaal of een bouwjaar als nieuwbouw telt.
+
+    Pure functie. ``None`` of een bouwjaar vóór :data:`NIEUWBOUW_JAAR_VANAF`
+    geeft ``False``; vanaf dat jaar ``True``.
+
+    Args:
+        bouwjaar: het bouwjaar van de woning, of ``None`` als onbekend.
+
+    Returns:
+        ``True`` als ``bouwjaar >= NIEUWBOUW_JAAR_VANAF``, anders ``False``.
+    """
+    if bouwjaar is None:
+        return False
+    return bouwjaar >= NIEUWBOUW_JAAR_VANAF
+
+
+def krijg_matrix() -> dict[str, Any]:
+    """Geef de prijsmatrix als JSON-vriendelijke data terug.
+
+    Bedoeld als bron voor consumers (bijv. de admin-portal) zodat die geen
+    eigen kopie van tarieven, grenzen of toeslagen meer hoeven te kennen.
+    De waarden komen uit :data:`_MATRIX` en de publieke constanten — niets
+    wordt los gedupliceerd. ``_MATRIX`` zelf blijft privé.
+
+    Returns:
+        Dict met ``tarieven`` (lijst van rijen met ``max_m2``, ``categorie``,
+        ``label``, ``bestaand``, ``nieuwbouw``), ``maatwerk_boven_m2`` en
+        ``spoedtoeslag_eur``.
+    """
+    return {
+        "tarieven": [
+            {
+                "max_m2": boven,
+                "categorie": key,
+                "label": label,
+                "bestaand": bestaand,
+                "nieuwbouw": nb,
+            }
+            for boven, key, label, bestaand, nb in _MATRIX
+        ],
+        "maatwerk_boven_m2": MAATWERK_BOVEN_M2,
+        "spoedtoeslag_eur": SPOEDTOESLAG_EUR,
+    }
+
 
 def bereken_prijs(
     oppervlakte_m2: float | int | None,
@@ -44,10 +96,10 @@ def bereken_prijs(
     """
     spoedtoeslag = SPOEDTOESLAG_EUR if spoed else 0
 
-    if oppervlakte_m2 is None or oppervlakte_m2 <= 0 or oppervlakte_m2 > 200:
+    if oppervlakte_m2 is None or oppervlakte_m2 <= 0 or oppervlakte_m2 > MAATWERK_BOVEN_M2:
         return {
             "categorie": "maatwerk",
-            "categorie_label": ">200 m² of onbekend",
+            "categorie_label": f">{MAATWERK_BOVEN_M2} m² of onbekend",
             "bedrag": None,
             "spoedtoeslag": spoedtoeslag,
             "totaal": None,
