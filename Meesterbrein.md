@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.16 |
+| **Versie** | 4.17 |
 | **Laatst bijgewerkt** | 3 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -65,6 +65,19 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - ⬜ **Volgende: Stap 2** — `bereken_prijs` op de core trekken volgens hetzelfde patroon (eerst plan, dan branch → PR → preview-test → merge). De core is hiervoor voorbereid: tag **v0.2.0** levert `bereken_prijs` plus publieke drempelwaarden + helpers (`krijg_matrix`, `is_nieuwbouw`, `NIEUWBOUW_JAAR_VANAF`, `MAATWERK_BOVEN_M2`), zodat de admin-portal-adapter géén eigen jaartal, grens of tarief meer kent. Stap 2 draait tegen v0.2.0.
 
 **Volgende stap:** Stap 2 — in de admin-portal de lokale prijsberekening vervangen door `core.prijs.bereken_prijs` (met een kleine output-adapter voor de bestaande frontend-keys), tegen tag **v0.2.0**. De adapter kent dankzij die release géén prijs-feiten meer — geen jaartal, geen grens, geen tarief; alles komt uit `core.prijs` (`krijg_matrix`, `is_nieuwbouw`, de drempelconstanten). Via dezelfde branch → PR → Railway PR-environment-flow (H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+
+**Fase 3 (F3) — Intake + Upload als online modules op de core:** 🔎 **verkend
+(Stap 0 klaar).** Beide tools doorgelicht; conclusie vastgelegd in H10.3. F3
+valt in twee sporen van verschillende aard: Intake (Flask, web-native, lager
+risico) eerst, daarna Upload (desktop + Playwright-browserrobot, hoger risico).
+- ⛔ **Veiligheidsregel bewaakt elke F3-repo-push:** geen tool-code naar Git met
+  een hardcoded secret erin. Voor de BAG-sleutel en Graph-auth valt dit samen met
+  de core-migratie (F3.2 / F3.8); alleen het EnergielabelPortaal-wachtwoord vergt
+  een aparte env-var-actie. Roteren doet Kevin handmatig (deze week), los van de
+  code.
+- ⬜ **Volgende concrete stap = F3.2** — Intake: eerste core-overlap
+  wegstrangleren (eigen ms_graph → core.graph_auth/graph_api, bag → core.bag,
+  prijs → core.prijs, logging → core.events). Uitvoering in een aparte sessie.
 
 📌 Sinds versie 4.15 bestaat er een levende frictielijst (sectie H6a — Productieve frictie). Bevat 9 punten (1 deels opgelost, 8 open); gebruik als input bij elke prioriteringskeuze.
 
@@ -568,6 +581,76 @@ De eerste functie in de admin-portal is vervangen door een core-aanroep (postcod
 
 5. **Mergen vanuit Claude Code** (`git merge --no-ff` + push naar main, eventueel met `gh` CLI om de PR netjes te sluiten) werkt prima — bespaart browsertabs. Discipline blijft: mergen pas na Kevins expliciete akkoord na preview-test.
 
+## 10.3 F3 — inventarisatie (verkenningsfase, 3 juni 2026)
+
+F3 ("Intake + Upload als online modules op de core") is verkend vóór er code
+beweegt. Conclusie: F3 is geen één-tool-klus maar twee sporen van verschillende
+aard en risico.
+
+**Twee tools, twee karakters:**
+- **Intake Tool** (~3.800 regels, Flask) is web-native: relatief tam om online te
+  brengen. Schrijft nu bestanden rechtstreeks naar de Windows-OneDrive-map — dat
+  moet om naar uploaden via core.graph_api. Bevat unieke IP (voorgevel-oriëntatie,
+  3DBAG, VABI-.epa, bewijs-PDF) die nergens anders bestaat. Aandachtspunt: VABI
+  vereist nu een lokale installatie (templates in AppData) — online draaien is
+  daardoor niet vanzelfsprekend.
+- **Uploadtool** (~4.700 regels, Tkinter + Playwright) is een desktopprogramma met
+  browser-robot. Kan niet zonder browser-automatisering (er is geen portaal-API).
+  Hogere complexiteit: headless Chromium op Railway nog te bewijzen, 2FA-code wordt
+  uit de mail gevist, de Tkinter-schil moet eraf.
+
+**Grootste core-winst:** béide tools hebben een eigen kopie van ms_graph.py (662
+regels) — samen met aanmeldformulier en admin-portal vier kopieën van dezelfde
+auth/Graph-logica. Vervangen door core.graph_auth/graph_api is de grootste,
+veiligste opbrengst. Verder direct vervangbaar: bag, prijs (v0.2.0), storage,
+events, agenda_format.
+
+> **⛔ Veiligheidsregel F3 — een principe, geen losse voorafgaande stap.**
+> De regel: **er gaat geen tool-code naar een Git-repo met een hardcoded secret
+> erin.** Eenmaal in de Git-historie krijg je een secret er nooit meer schoon
+> uit. Concreet valt dit zo uiteen:
+> - **BAG-sleutel (Intake, `data_api.py`):** verdwijnt automatisch in **F3.2** —
+>   daar vervangt de migratie de lokale BAG-logica door core.bag, dat al via een
+>   env-var werkt. Geen aparte sanering nodig.
+> - **Graph-auth (beide tools, `ms_graph.py`):** verdwijnt bij de
+>   ms_graph → core.graph_auth-migratie — **F3.2** (Intake) en **F3.8** (Upload).
+>   Geen aparte sanering.
+> - **EnergielabelPortaal-wachtwoord (Upload, `config.py`):** zit NIET in de core
+>   (uniek aan de Uploadtool, er is geen portaal-API). Moet apart naar een
+>   env-var; hoort bij het Upload-spoor (rond **F3.6/F3.8**).
+> - **Roteren van alle drie:** los van de code-volgorde, handmatig door Kevin
+>   (deze week). De oude secrets zijn immers al bekend/"verbrand", ongeacht de
+>   technische oplossing.
+>
+> Kortom: de poort blokkeert niet de *start* van F3, maar bewaakt elke
+> afzonderlijke repo-push. Voor BAG en Graph valt naleving samen met de
+> core-migratie zelf; alleen het portaal-wachtwoord vraagt een eigen
+> env-var-actie. Zie ook H8.3.
+
+**Sub-stappen (raming ~9–11), in 1a/1b-discipline net als F2:**
+
+| Stap | Spoor | Inhoud |
+| --- | --- | --- |
+| F3.0 | gezamenlijk | Inventarisatie (deze sectie) — ✅ klaar |
+| F3.1 | gezamenlijk | **Veiligheidsregel (principe, geen losse stap):** geen secret in code die naar Git gaat. Naleving valt voor de BAG-sleutel en Graph-auth samen met de core-migratie (F3.2 / F3.8); alleen het EnergielabelPortaal-wachtwoord vergt een aparte env-var-actie (F3.6 / F3.8). Roteren van de secrets: handmatig door Kevin, los van de code-volgorde. |
+| F3.2 | A — Intake | Core-overlap wegstrangleren: eigen ms_graph → core.graph_auth/graph_api, bag → core.bag, prijs → core.prijs, logging → core.events |
+| F3.3 | A — Intake | Output ombouwen: van rechtstreeks naar de Windows-map schrijven naar uploaden via core.graph_api |
+| F3.4 | A — Intake | Online vorm geven (knop in admin-portal óf aparte Flask-service) + aanpak voor lange taken |
+| F3.5 | A — Intake | VABI-beslissing uitvoeren (lokaal/handmatig houden, meeleveren, of zonder VABI-installatie onderzoeken) |
+| F3.6 | B — Upload | GUI ontkoppelen: van Tkinter-venster naar een aanstuurbare service/CLI (kern blijft, schil eraf) |
+| F3.7 | B — Upload | Playwright op Railway bewijzen (proef met headless Chromium) — of besluiten dit naar F6 te schuiven |
+| F3.8 | B — Upload | Core-overlap wegstrangleren (idem ms_graph → core, bag, logging) |
+| F3.9 | B — Upload | Verificatie-per-categorie + parallelle uploads + foto-compressie online betrouwbaar; status naar core.events/dashboard |
+
+**Open beslispunten voor Kevin** (volledige opties + impact in het
+verkenningsrapport): secrets-volgorde, vorm van Intake (knop vs. aparte service),
+vorm/timing van Upload (Railway nu vs. F6 vervroegen), Intake-output, VABI online,
+lange-taken-mechanisme, gedeelde vs. losse auth-tokens, stack-keuze (B2).
+
+Werkvolgorde: éérst F3.1 naleven, dán per spoor een eigen mini-plan — niet de
+hele lijst in één keer doorrazen. Spoor B (Upload) verdient mogelijk een eigen
+verkenning vóór er code beweegt.
+
 # 11. Versiehistorie
 
 | **Versie** | **Datum** | **Wijziging** |
@@ -592,5 +675,7 @@ De eerste functie in de admin-portal is vervangen door een core-aanroep (postcod
 | 4.15 | 3 juni 2026 | **Twee toevoegingen.** (1) Nieuwe sectie H6a — Productieve frictie: levende lijst van 9 dagelijkse irritaties uit Kevin's werk, gecategoriseerd (bug / proces / UI-feature / data-integratie) en gekoppeld aan welke fase ze structureel oplost. Twee punten (bovenaanzicht in admin-portal, spoedbox bij afspraak) gemarkeerd als geschikt voor de nieuwe collega. Tijdformaat-bug (HHMM→HH:MM) uit PR #1 erkend als opgelost; puntsafspraak-bug voor 09:00 nog te bevestigen. Belangrijk toegevoegd principe: Claude en collega mogen eigen slimmere oplossingen voorstellen bij het oplossen van punten — Kevin's beschrijving dekt het probleem, niet noodzakelijk de beste oplossing. (2) Nieuwe sectie H1a — Schaal-horizon: schaal-ambitie vastgelegd (multi-user voor intern personeel met rollen, en abonnementsvorm voor concullega's). Expliciet géén fase en geen wijziging aan F1–F8, maar input voor architectuur-keuzes die nu al spelen: multi-user auth-laag, per-tenant datalaag (F4), multi-tenant hosting (F6) en een toekomstige pricing/billing-module (Stripe, mogelijke SnelStart-koppeling). |
 
 | 4.16 | 3 juni 2026 | **Werkwijze expliciet vastgelegd in drie bestanden.** Nieuwe sectie H0b — Werkwijze (drie rollen, één doel): de samenwerkingsdriehoek tussen Claude in de chat (strateeg/gids), Claude Code (developer met eigen inzicht) en Kevin (eigenaar/beslisser), met een rollentabel, vier niet-rigide werkstromen en de niet-onderhandelbare regels (geen push naar main zonder akkoord, geen merge zonder bewezen preview-test, bij twijfel vragen, geen deuren dichtbouwen). CLAUDE.md uitgebreid met "Jouw rol als Claude Code" (developer met eigen inzicht, mag/moet slimmere oplossingen voorstellen, strategie via Kevin). ONBOARDING.md §3 uitgebreid met de driehoek en de plek van de nieuwe collega (óók developer met eigen inzicht). Kruisverwijzingen naar H6a (eigen-inzicht-principe) en H1a (bouw geen deuren dicht) i.p.v. duplicatie. |
+
+| 4.17 | 3 juni 2026 | **F3 verkend (Stap 0) en vastgelegd.** Nieuwe sectie H10.3 — F3-inventarisatie: beide lokale tools (Intake Tool ~3.800 regels Flask; Uploadtool ~4.700 regels Tkinter + Playwright) doorgelicht. Conclusie: F3 is twee sporen van verschillende aard — Intake (web-native, lager risico) eerst, daarna Upload (desktop + browserrobot, hoger risico). Grootste core-winst: vier kopieën van ms_graph.py vervangen door core.graph_auth/graph_api. Negen sub-stappen (F3.0–F3.9) opgenomen in 1a/1b-discipline. **Veiligheidsregel vastgelegd als principe — geen secret in code die naar Git gaat:** voor de BAG-sleutel en Graph-auth valt naleving samen met de core-migratie (F3.2/F3.8), alleen het EnergielabelPortaal-wachtwoord vergt een aparte env-var-actie; roteren doet Kevin handmatig, los van de code-volgorde. H0a Bouwstatus bijgewerkt: F3 als "verkend, volgende = F3.2". Versie 4.16 → 4.17. |
 
 *— Einde document —*
