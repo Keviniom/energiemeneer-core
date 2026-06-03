@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.14 |
+| **Versie** | 4.15 |
 | **Laatst bijgewerkt** | 3 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -66,6 +66,10 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 **Volgende stap:** Stap 2 — in de admin-portal de lokale prijsberekening vervangen door `core.prijs.bereken_prijs` (met een kleine output-adapter voor de bestaande frontend-keys), via dezelfde branch → PR → Railway PR-environment-flow (H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
+📌 Sinds versie 4.15 bestaat er een levende frictielijst (sectie H6a — Productieve frictie). Bevat 9 punten (1 deels opgelost, 8 open); gebruik als input bij elke prioriteringskeuze.
+
+📌 Sinds versie 4.15 is de schaal-ambitie vastgelegd in sectie H1a — Schaal-horizon (multi-user intern + abonnement voor concullega's). Geen fase, wél input voor architectuur-keuzes (auth, datalaag, hosting, billing).
+
 📌 **Roadmap-volgorde gewijzigd in versie 4.14 (3 juni 2026):** de uitvoeringsvolgorde van F3 t/m F6 is omgegooid. Oude F6 (Intake + Upload als online modules) is opgewaardeerd naar F3, en oude F3 (verhuizing naar eigen hosting) is verschoven naar F6 — pas nadat alle tools draaien en de jobs lopen. Zie H10 voor de volledige tabel en toelichting.
 
 **Aantekeningen voor later (consolidatie):**
@@ -100,6 +104,26 @@ Versie 4.0 erkent dat het oorspronkelijke knelpunt (terugzoeken na afmelden) sle
 | K2 | Dezelfde logica (auth, BAG, prijzen, agenda) staat 3–5× gekopieerd over tools | Één gedeeld fundament (energiemeneer-core); elke wijziging één keer |
 | K3 | Tools draaien verspreid (2× Railway, 2× lokaal, 1× los script), geen overzicht | Één online portal + één dashboard met status, logs en foutmeldingen |
 | K4 | Microsoft-token/auth-problemen keren in elke tool apart terug | Één centrale, persistente auth-laag voor het hele platform |
+
+# 1a. Schaal-horizon — van één gebruiker naar meerdere
+
+Het platform wordt nu gebouwd voor één gebruiker (Kevin). Op termijn wil De EnergieMeneer twee kanten op kunnen schalen:
+
+- **(a) Intern personeel** — meerdere medewerkers binnen De EnergieMeneer met eigen accounts en een rolverdeling (bijvoorbeeld opname-adviseur, admin, boekhouder), elk met eigen rechten op de modules en de data.
+
+- **(b) Concullega's** — andere energieadvies-bedrijven die via een abonnementsvorm gebruik kunnen maken van (delen van) het platform. Dit maakt het platform op termijn een product op zichzelf, niet alleen een interne tool.
+
+**Deze schaal-ambitie heeft nu geen prioriteit en is géén onmiddellijke fase — F1 t/m F8 (H10) blijven ongewijzigd.** Ze staat hier omdat ze nú al architectuur-keuzes raakt die we maken: het is goedkoper om er rekening mee te houden dan om er later op terug te bouwen. Concreet als input voor het ontwerp:
+
+- **Identity-/auth-laag (H4.3):** moet niet vastroesten als één-Kevin-token, maar zó worden opgezet dat multi-user (meerdere accounts, rollen) er later op past.
+
+- **Datalaag (F4):** moet per-tenant scheiding kunnen ondersteunen — data van verschillende bedrijven strikt gescheiden.
+
+- **Hosting (F6):** moet een multi-tenant deployment aankunnen.
+
+- **Pricing/billing-laag:** wordt te zijner tijd een eigen module (Stripe of vergelijkbaar, met een mogelijke koppeling naar SnelStart en het bestaande F8-spoor).
+
+Kortom: bouw geen deuren dicht. Waar een keuze tussen "single-user simpel" en "multi-user-klaar" weinig extra kost, kiezen we bewust de laatste.
 
 # 2. Bedrijfsprofiel
 
@@ -262,6 +286,33 @@ Twee geautomatiseerde jobs, aangestuurd vanuit het platform en zichtbaar op het 
 - **Job A (voorbereiden)** — scan agenda voor de komende 48 uur, bereid per opname automatisch het dossier voor (module Voorbereiding), schrijf naar de datalaag, meld op dashboard.
 
 - **Job B (uploaden)** — scan klare dossiers, vul ontbrekende opdrachtbevestiging aan uit Outlook, upload naar EnergielabelPortaal (module Upload), verifieer, meld op dashboard.
+
+# 6a. Productieve frictie
+
+Dit is een **levend document**. Frictie die herhaaldelijk wordt gevoeld is een signaal dat een fase of module aandacht verdient. Punten met een geschatte tijd-per-week zijn directe input voor prioritering: hoe meer tijd een irritatie structureel kost, hoe zwaarder die meeweegt. De lijst wordt **bijgewerkt zodra een nieuwe irritatie opvalt**, en een punt wordt **geleegd (verwijderd) zodra het structureel is opgelost** door een fase of PR — niet eerder, want een half opgeloste pijn blijft pijn.
+
+**Belangrijk principe bij het oplossen van deze punten:** Claude (zowel in de chat als in Claude Code) mag en moet eigen, slimmere oplossingen voorstellen wanneer Kevins beschrijving wél het probleem dekt, maar niet noodzakelijk de beste oplossing. Kevin is geen doorgewinterde programmeur en kent niet altijd de elegantste route — een goede inval van Claude of de collega is uitdrukkelijk welkom. **Voorwaarde:** benoem expliciet wát je voorstelt en waaróm het beter is dan Kevins oorspronkelijke beschrijving, zodat hij bewust kan kiezen. De beschrijving in de tabel legt de *pijn* vast, niet de verplichte oplossing.
+
+| **#** | **Beschrijving** | **Frequentie** | **Tijd/week** | **Categorie** | **Lost op in fase** | **Status** |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Bij elke energielabel-afmelding moet ik de bijbehorende klant opzoeken aan het adres, de juiste offerte vinden, omzetten naar factuur en de makelaar opzoeken om in de cc te zetten. | bij elk energielabel | ~10 min per keer | Data/integratie | F4 + F8 | Open |
+| 2 | De opdrachtbevestiging is dubbelop met de afspraakbevestiging. | bij elke nieuwe aanvraag | nog invullen | Proces/UI | F3 | Open |
+| 3 | Agenda-patch toonde tijden als "0900 en 1030 uur" i.p.v. "09:00 – 10:30". Daarnaast: de eerste afspraak van de dag (09:00) verschijnt als puntsafspraak i.p.v. een blokje met eindtijd. | bij elke nieuwe afspraak | — | Bug (klein) | PR #1 (gedeeltelijk) + later in F3 bij agenda_format-migratie | ✅ Tijdformaat (HHMM→HH:MM) is opgelost in PR #1 op admin-portal (gemerged 3 juni 2026). Puntsafspraak-bug voor 09:00: status nog te bevestigen door Kevin (mogelijk ook opgelost — herziening bij volgende functionele test). |
+| 4 | De afspraakbevestiging moet meteen dienen als opdrachtbevestiging. Geldt voor zowel klant-self-service (aanmeldformulier) als handmatig inplannen (admin portal). | bij elke nieuwe aanvraag | nog invullen | Proces | F3 (fusie aanmeldformulier + admin-portal) | Open |
+| 5 | Bij woning-beoordeling in de admin portal is StreetView soms onvoldoende. Wens: bovenaanzicht (zoals BAG-viewer) toevoegen. | regelmatig | nog invullen | UI-feature | quick fix (PR) | Open — geschikt voor nieuwe collega |
+| 6 | Spoed-aanvinkbox bij afspraak inplannen met melding "+ €35 incl. BTW" wanneer mogelijk. Maakt eerste 48 uur zichtbaar in de agenda (standaard nu als bezette ruimte ingebouwd). | gewenst | nog niet meetbaar | Feature | eigen PR | Open — geschikt voor nieuwe collega |
+| 7 | Sommige adressen geven foute resultaten in nieuwe-opdracht-aanvragen, bijv. Stille Veerkade 34 vs 34A → dezelfde gegevens. | onbekend (wel reproduceerbaar) | zelden maar wel data-integriteitsrisico | Bug | onderzoek (huisletter-handling in BAG-koppeling) | Open |
+| 8 | Inkomende makelaar-aanvraag via aanmeldformulier vergt nu handmatig overkopiëren: gegevens naar admin-portal voor de agenda, daarna SnelStart voor de boekhouding, daarna opdrachtbevestiging + offerte sturen. | nog invullen | nog invullen | Proces/integratie | F3 + F4 + F8 | Open |
+| 9 | Makelaar wordt wel benoemd in admin-portal maar komt niet terug in de agenda-patch. | bij elke makelaar-aanvraag | nog invullen | Bug | agenda_format-migratie (F3) | Open |
+
+**Hoe we deze lijst gebruiken**
+
+- Bij elke nieuwe roadmap-sessie controleren of de huidige fase deze pijn adresseert.
+- Quick fixes oppakken in losse PR's — niet wachten op grote fases.
+- Frictie die níét wordt opgelost door de geplande fases is een signaal om de roadmap te heroverwegen.
+- Claude of de collega mag eigen alternatieve oplossingen voorstellen wanneer een betere route mogelijk lijkt; Kevin beslist uiteindelijk.
+
+*De tijd-per-week-kolom is op de meeste punten nog niet ingevuld. Aanvullen zodra meetbaar, zodat prioritering op data gebaseerd kan worden in plaats van op gevoel.*
 
 # 7. De modules — status per functionaliteit
 
@@ -477,5 +528,6 @@ De eerste functie in de admin-portal is vervangen door een core-aanroep (postcod
 | 4.12 | 1 juni 2026 | F2 gestart en eerste plumbing-stap (1a) bewezen op Railway. PR Environments aangezet in Railway Project Settings voor automatische preview-deployments per Pull Request. Branch core-integratie-stap1a → PR #1 op admin-portal-repo → PR-environment admin-portal-pr-1: Nixpacks-build slaagde, energiemeneer-core 0.1.0 schoon geïnstalleerd vanaf publieke GitHub-tag (anoniem bereikbaar zonder credentials), healthcheck groen, /healthz endpoint geverifieerd in browser. Werkwijze voor alle toekomstige strangler-stappen vastgelegd in nieuwe sectie F2.1. Ontdekking: 'Focused PR Environments' markeerde service als niet-geraakt (work-around: handmatige Deploy; definitief opgelost door Focused uit te zetten — werkt prima met 1 service per project). Aantekening toegevoegd: Docker-warning over secrets in ARG/ENV hoort bij secret-rotatie H8.3. Volgende: stap 1b — postcode-vervanging in server.py, opnieuw via PR-flow. |
 | 4.13 | 1 juni 2026 | F2 Stap 1b (postcode-vervanging) gemerged naar main — admin-portal draait nu in productie op core.bag.normaliseer_postcode. Bonus-oogst meegenomen in dezelfde PR: (a) domein-typo overal gefixt naar de-energiemeneer.nl met streepje (instellingen.py, email_templates.py, klant_portaal.html), (b) agenda-titel toont nu netjes 'HH:MM en HH:MM uur' met dubbele punten in plaats van 'HHMM en HHMM uur'. Nieuwe sectie F2.2 toegevoegd met geleerde patronen (1a/1b-splitsing, bevroren ijkpunt-test, hardcoded vs persistent instellingen, bonus-fix-regel, merge-vanuit-Claude-Code). Aandachtspunten toegevoegd: testknop bouwen, productie-instellingen checken, agenda-format-migratie als latere strangler-stap. Volgende: F2 Stap 2 — bereken_prijs op de core trekken volgens hetzelfde patroon. |
 | 4.14 | 3 juni 2026 | Strategische roadmap-wijziging — uitvoeringsvolgorde van F3-F6 omgegooid op verzoek van Kevin. Intake + Upload online modules (was F6) opgewaardeerd naar F3 omdat het directe productiviteitswinst levert. Verhuizing naar eigen hosting (was F3) verschoven naar F6 — pas nadat alle tools draaien en jobs lopen. Hernummering: oude F3↔F6 omgewisseld; F4, F5, F7, F8 ongewijzigd. Alle interne kruisverwijzingen in het document gelijkgetrokken. Korte toelichting boven H10-tabel toegevoegd. |
+| 4.15 | 3 juni 2026 | **Twee toevoegingen.** (1) Nieuwe sectie H6a — Productieve frictie: levende lijst van 9 dagelijkse irritaties uit Kevin's werk, gecategoriseerd (bug / proces / UI-feature / data-integratie) en gekoppeld aan welke fase ze structureel oplost. Twee punten (bovenaanzicht in admin-portal, spoedbox bij afspraak) gemarkeerd als geschikt voor de nieuwe collega. Tijdformaat-bug (HHMM→HH:MM) uit PR #1 erkend als opgelost; puntsafspraak-bug voor 09:00 nog te bevestigen. Belangrijk toegevoegd principe: Claude en collega mogen eigen slimmere oplossingen voorstellen bij het oplossen van punten — Kevin's beschrijving dekt het probleem, niet noodzakelijk de beste oplossing. (2) Nieuwe sectie H1a — Schaal-horizon: schaal-ambitie vastgelegd (multi-user voor intern personeel met rollen, en abonnementsvorm voor concullega's). Expliciet géén fase en geen wijziging aan F1–F8, maar input voor architectuur-keuzes die nu al spelen: multi-user auth-laag, per-tenant datalaag (F4), multi-tenant hosting (F6) en een toekomstige pricing/billing-module (Stripe, mogelijke SnelStart-koppeling). |
 
 *— Einde document —*
