@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.18 |
+| **Versie** | 4.19 |
 | **Laatst bijgewerkt** | 5 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -36,7 +36,7 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 > Deze sectie houdt de actuele voortgang bij, zodat elke nieuwe chat en elke Claude Code-sessie meteen weet waar het project staat. Werk dit bij zodra een module of fase verandert.
 
-**Laatst bijgewerkt:** 3 juni 2026
+**Laatst bijgewerkt:** 5 juni 2026
 
 **Fundament — `energiemeneer-core`** (Python-library, draait via Claude Code in de map `energiemeneer-core`, op GitHub/lokaal):
 
@@ -62,9 +62,9 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - ✅ **F2.2 Stap 1a (plumbing)** — core als dependency + postcode-test, géén gedragsverandering. Bewezen op Railway PR-environment `admin-portal-pr-1`.
 - ✅ **F2.2 Stap 1b (postcode-vervanging)** — `normaliseer_postcode` in `server.py` vervangen door `core.bag.normaliseer_postcode`, lokale duplicaat verwijderd. **Gemerged naar main; productie draait nu op de core voor postcode-normalisatie.**
 - ✅ **Bonus-fixes meegenomen in dezelfde PR (#1):** domein-typo overal gefixt naar `de-energiemeneer.nl` (met streepje — de admin-notificatie bouncede op het niet-bestaande adres zonder streepje) en tijdformaat-fix (agenda-titel toont nu "13:00 en 14:30 uur" met dubbele punten i.p.v. "1300").
-- ⬜ **Volgende: Stap 2** — `bereken_prijs` op de core trekken volgens hetzelfde patroon (eerst plan, dan branch → PR → preview-test → merge). De core is hiervoor voorbereid: tag **v0.2.0** levert `bereken_prijs` plus publieke drempelwaarden + helpers (`krijg_matrix`, `is_nieuwbouw`, `NIEUWBOUW_JAAR_VANAF`, `MAATWERK_BOVEN_M2`), zodat de admin-portal-adapter géén eigen jaartal, grens of tarief meer kent. Stap 2 draait tegen v0.2.0.
+- ✅ **F2.2 Stap 2 (prijs)** — `bereken_prijs` in `server.py` vervangen door een dunne adapter rond `core.prijs.bereken_prijs` + `core.prijs.is_nieuwbouw` (tegen tag **v0.2.0**); output-vorm `{prijs, maatwerk, label}` en de quirk (onbekend type → Maatwerk) bewust behouden. Lokale `PRIJSMATRIX`-duplicaat én het ongebruikte, admin-gated `/api/prijzen`-endpoint verwijderd; `/api/prijs` (live berekening) blijft. Spoedtoeslag bewust ongemoeid (gedragsneutraal). Pariteitstest verbeterd: importeert nu de **échte** `server.bereken_prijs` en vergelijkt met de bevroren oude logica (`_OUD_*`), groen in een kale omgeving zonder secrets (334/334). **Gemerged via PR #4; productie rekent prijzen nu via de core.**
 
-**Volgende stap:** Stap 2 — in de admin-portal de lokale prijsberekening vervangen door `core.prijs.bereken_prijs` (met een kleine output-adapter voor de bestaande frontend-keys), tegen tag **v0.2.0**. De adapter kent dankzij die release géén prijs-feiten meer — geen jaartal, geen grens, geen tarief; alles komt uit `core.prijs` (`krijg_matrix`, `is_nieuwbouw`, de drempelconstanten). Via dezelfde branch → PR → Railway PR-environment-flow (H10.2/F2.1), pas na groen + functionele check mergen. Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+**Volgende stap:** Stap 3 (voorstel) — `bag_lookup` in `server.py` wegstrangleren naar `core.bag`, volgens hetzelfde patroon (1a plumbing/pariteit → 1b vervanging; branch → PR → Railway-preview → merge na functionele check). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
 
 **Fase 3 (F3) — Intake + Upload als online modules op de core:** 🔎 **verkend
 (Stap 0 klaar).** Beide tools doorgelicht; conclusie vastgelegd in H10.3. F3
@@ -94,6 +94,8 @@ risico) eerst, daarna Upload (desktop + Playwright-browserrobot, hoger risico).
 - Testknop op `/instellingen` die een admin-notificatie stuurt zónder een afspraak in te plannen — spaart tijd bij elke mail-gerelateerde wijziging. Eigen PR, geen onderdeel van de strangler.
 - Productie `/instellingen` controleren: vermoedelijk staan de bedrijfsgegevens daar net zo leeg/fout als op de preview vóór de fix. Bij het eerstvolgende productie-bezoek invullen (email, telefoon, website, KvK, BTW).
 - Agenda-titel-opmaak migreren naar `core.agenda_format`: vandaag is in `admin-portal/ms_graph.py` alleen een lokale typo-fix gedaan (`%H%M` → `%H:%M`). De volledige titel-opbouw hoort straks vervangen te worden door `agenda_format.opmaak_opname()` — plan voor een latere strangler-stap, niet nu.
+- **WSL/Claude Code brak herhaaldelijk op Kevins Windows** (foutcode `Wsl/0x80070422`) doordat CCleaner de dienst **WSLService** telkens uitschakelde. Directe fix: WSLService op 'Handmatig' zetten (`Set-Service -Name WSLService -StartupType Manual` + `Start-Service`). Blijvende oplossing: CCleaner verwijderen, of z'n automatische run / Health Check / Performance Optimizer uitzetten.
+- **Claude Code-toestemmingen op gebruikersniveau** voor ononderbroken doorbouwen — allow: `Bash(*)`, `Edit`, `Write`; deny: `Bash(rm -rf *)`, `Bash(git reset --hard *)`, `Bash(git clean -f*)`. Werkwijze: Kevin verleent zoveel mogelijk toestemming vooraf (zelfstandig branchen / schrijven / committen / branch pushen / PR openen); de harde grens blijft: **niet zelf mergen naar main/productie** — stoppen op een groene PR-preview voor Kevins functionele check + merge-go. (Overweeg dit ook in H0b te verankeren.) Aandachtspunt: `cd`-commando's blijven om veiligheid vragen ondanks de allow-lijst — start Claude Code in de projectmap om dat te vermijden. Klein: `gh` (GitHub CLI) installeren zodat PR's niet via het credential-bestand hoeven.
 
 # 0b. Werkwijze — drie rollen, één doel
 
@@ -678,5 +680,6 @@ verkenning vóór er code beweegt.
 
 | 4.17 | 3 juni 2026 | **F3 verkend (Stap 0) en vastgelegd.** Nieuwe sectie H10.3 — F3-inventarisatie: beide lokale tools (Intake Tool ~3.800 regels Flask; Uploadtool ~4.700 regels Tkinter + Playwright) doorgelicht. Conclusie: F3 is twee sporen van verschillende aard — Intake (web-native, lager risico) eerst, daarna Upload (desktop + browserrobot, hoger risico). Grootste core-winst: vier kopieën van ms_graph.py vervangen door core.graph_auth/graph_api. Negen sub-stappen (F3.0–F3.9) opgenomen in 1a/1b-discipline. **Veiligheidsregel vastgelegd als principe — geen secret in code die naar Git gaat:** voor de BAG-sleutel en Graph-auth valt naleving samen met de core-migratie (F3.2/F3.8), alleen het EnergielabelPortaal-wachtwoord vergt een aparte env-var-actie; roteren doet Kevin handmatig, los van de code-volgorde. H0a Bouwstatus bijgewerkt: F3 als "verkend, volgende = F3.2". Versie 4.16 → 4.17. |
 | 4.18 | 5 juni 2026 | **Org-verhuizing GitHub: `Keviniom` → `De-Energiemeneer`.** Alle repo's zijn van het persoonlijke GitHub-account `Keviniom` naar de organisatie `De-Energiemeneer` verhuisd. Repo-verwijzingen (clone-URL's, repo-namen) in Meesterbrein.md en ONBOARDING.md bijgewerkt naar `De-Energiemeneer/…`. Git-remotes van de lokale repo's omgezet (energiemeneer-core, admin-portal); de core-pin in de Intake Tool en in admin-portal bijgesteld naar `git+https://github.com/De-Energiemeneer/energiemeneer-core.git@v0.2.0` (admin-portal via PR, dat deployt). **Bewust ongemoeid gelaten:** verwijzingen naar het Railway-account 'keviniom' (dat is niet meeverhuisd) en de historische versiehistorie-regels — die beschrijven de situatie van toen en blijven correct. Versie 4.17 → 4.18. |
+| 4.19 | 5 juni 2026 | **F2 Stap 2 (prijs) afgerond en gemerged.** `bereken_prijs` in admin-portal `server.py` vervangen door een dunne adapter rond `core.prijs.bereken_prijs` + `core.prijs.is_nieuwbouw` (tegen tag v0.2.0); output-vorm `{prijs, maatwerk, label}` en de quirk (onbekend type → Maatwerk) behouden. Lokale `PRIJSMATRIX`-duplicaat én het ongebruikte, admin-gated `/api/prijzen`-endpoint verwijderd; `/api/prijs` (live berekening) blijft. Spoedtoeslag bewust ongemoeid (gedragsneutraal). Pariteitstest verbeterd: importeert nu de échte `server.bereken_prijs` en vergelijkt met de bevroren oude logica (`_OUD_*`), groen in een kale omgeving zonder secrets (334/334). Gemerged via PR #4; productie rekent prijzen nu via de core. H0a bijgewerkt (Stap 2 ✅, volgende = Stap 3: `bag_lookup` → `core.bag`). **Twee consolidatie-aantekeningen toegevoegd:** (1) WSL brak herhaaldelijk (`Wsl/0x80070422`) doordat CCleaner WSLService telkens uitschakelde — fix WSLService op 'Handmatig', blijvend CCleaner's auto-run uitzetten/verwijderen; (2) Claude Code-toestemmingen op gebruikersniveau voor ononderbroken doorbouwen (allow `Bash(*)`/`Edit`/`Write`, deny `rm -rf`/`git reset --hard`/`git clean -f`) met de harde grens 'niet zelf mergen', plus aandachtspunten (`cd` vraagt nog steeds → start in projectmap; `gh` installeren). Versie 4.18 → 4.19. |
 
 *— Einde document —*
