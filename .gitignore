@@ -115,3 +115,6 @@ dmypy.json
 
 # Windows / OneDrive sync metadata
 *:Zone.Identifier
+
+# Claude Code lokale sessiemap
+.claude/
