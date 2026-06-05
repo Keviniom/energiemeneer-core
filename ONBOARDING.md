@@ -45,9 +45,9 @@ leidende document; dit is de praktische instap.
 
 | Repo | Rol |
 | --- | --- |
-| **Keviniom/energiemeneer-core** | De gedeelde library (hier staat deze ONBOARDING.md). Modules 1–8 af, 159/159 tests groen. |
-| **Keviniom/admin-portal** | Eerste tool die wordt gemigreerd. Draait live op Railway, neemt de core al als dependency. |
-| **Keviniom/energiemeneer-aanmeldformulier** | Tweede tool, nog te migreren. |
+| **De-Energiemeneer/energiemeneer-core** | De gedeelde library (hier staat deze ONBOARDING.md). Modules 1–8 af, 159/159 tests groen. |
+| **De-Energiemeneer/admin-portal** | Eerste tool die wordt gemigreerd. Draait live op Railway, neemt de core al als dependency. |
+| **De-Energiemeneer/energiemeneer-aanmeldformulier** | Tweede tool, nog te migreren. |
 
 Je krijgt **collaborator-toegang** van Kevin op de relevante repos. Zonder die
 toegang kun je niet pushen of PR's openen — vraag erom als je clone-/push-fouten
@@ -109,7 +109,7 @@ Het patroon is vastgelegd in **Meesterbrein H10.2 → F2.2**. Kernpunten:
   die test bewaken dat de core exact hetzelfde doet als wat de tool vroeger deed.
   Zo vang je een stille gedragsafwijking direct.
 
-**Canoniek voorbeeld:** PR #1 op `Keviniom/admin-portal` — de
+**Canoniek voorbeeld:** PR #1 op `De-Energiemeneer/admin-portal` — de
 postcode-normalisatie (`normaliseer_postcode`) werd vervangen door
 `core.bag.normaliseer_postcode`. Lees die PR end-to-end; het is het referentie-
 patroon voor elke volgende stap.
@@ -155,9 +155,9 @@ afspraken"):
 Repos clonen:
 
 ```bash
-git clone git@github.com:Keviniom/energiemeneer-core.git
-git clone git@github.com:Keviniom/admin-portal.git
-git clone git@github.com:Keviniom/energiemeneer-aanmeldformulier.git
+git clone git@github.com:De-Energiemeneer/energiemeneer-core.git
+git clone git@github.com:De-Energiemeneer/admin-portal.git
+git clone git@github.com:De-Energiemeneer/energiemeneer-aanmeldformulier.git
 ```
 
 Eerste keer dependencies installeren (per repo):
@@ -233,7 +233,7 @@ cd energiemeneer-core && pip install -e . && pytest
   Modules, H10 Roadmap), `BOUWPLAN.md`, `CLAUDE.md` en deze `ONBOARDING.md`.
 - **Dag 2 — Opzetten.** Clone beide tool-repos + de core. Draai de core-tests
   lokaal (`pytest`). Lees `server.py` van de admin-portal end-to-end.
-- **Dag 3 — Het canonieke voorbeeld.** Lees **PR #1** op `Keviniom/admin-portal`
+- **Dag 3 — Het canonieke voorbeeld.** Lees **PR #1** op `De-Energiemeneer/admin-portal`
   volledig door (postcode-normalisatie). Dit is hét referentievoorbeeld van een
   strangler-stap: 1a/1b, bevroren-ijkpunt-test, preview-flow.
 - **Dag 4 — Eerste kleine taak.** Suggestie: de **testknop op `/instellingen`**

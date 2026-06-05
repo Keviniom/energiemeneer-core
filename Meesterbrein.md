@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| **Versie** | 4.17 |
-| **Laatst bijgewerkt** | 3 juni 2026 |
+| **Versie** | 4.18 |
+| **Laatst bijgewerkt** | 5 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
 
@@ -398,8 +398,8 @@ Doel: aanvragen binnenhalen — via klant-self-service (formulier + Calendly) é
 
 | **Aspect** | **Status** |
 | --- | --- |
-| Aanmeldformulier | Live op Railway (Keviniom/energiemeneer-aanmeldformulier). 3-staps flow, Calendly-webhook, agenda-patch, polling/monitor/healthcheck. |
-| Admin Portal | Live op Railway (Keviniom/admin-portal). Eigen slot-grid, klant-portaal via token, bevestig-/wijzig-/annuleer-mails. |
+| Aanmeldformulier | Live op Railway (De-Energiemeneer/energiemeneer-aanmeldformulier). 3-staps flow, Calendly-webhook, agenda-patch, polling/monitor/healthcheck. |
+| Admin Portal | Live op Railway (De-Energiemeneer/admin-portal). Eigen slot-grid, klant-portaal via token, bevestig-/wijzig-/annuleer-mails. |
 | Te doen | Fuseren tot één backend op de core; agenda-functie van formulier vervangen door Admin-versie; bron-veld toevoegen; verhuizen naar eigen hosting. |
 
 ## 7.2 Module: Voorbereiding (Intake Tool v4.9)
@@ -439,8 +439,8 @@ Doel: particulier verduurzamingsadvies en VvE-maatwerkadvies als volwaardige tra
 
 | **Tool** | **Waar het nu draait** | **Repo** |
 | --- | --- | --- |
-| Aanmeldformulier | Railway (US East) + volume | Keviniom/energiemeneer-aanmeldformulier |
-| Admin Portal | Railway | Keviniom/admin-portal |
+| Aanmeldformulier | Railway (US East) + volume | De-Energiemeneer/energiemeneer-aanmeldformulier |
+| Admin Portal | Railway | De-Energiemeneer/admin-portal |
 | Intake Tool | Lokaal Windows (Flask :5000) | lokaal / backend |
 | Uploadtool | Lokaal Windows (Tkinter) | lokaal / backend |
 | VvE-tool | Los CLI-script | (VvE-repo) |
@@ -677,5 +677,6 @@ verkenning vóór er code beweegt.
 | 4.16 | 3 juni 2026 | **Werkwijze expliciet vastgelegd in drie bestanden.** Nieuwe sectie H0b — Werkwijze (drie rollen, één doel): de samenwerkingsdriehoek tussen Claude in de chat (strateeg/gids), Claude Code (developer met eigen inzicht) en Kevin (eigenaar/beslisser), met een rollentabel, vier niet-rigide werkstromen en de niet-onderhandelbare regels (geen push naar main zonder akkoord, geen merge zonder bewezen preview-test, bij twijfel vragen, geen deuren dichtbouwen). CLAUDE.md uitgebreid met "Jouw rol als Claude Code" (developer met eigen inzicht, mag/moet slimmere oplossingen voorstellen, strategie via Kevin). ONBOARDING.md §3 uitgebreid met de driehoek en de plek van de nieuwe collega (óók developer met eigen inzicht). Kruisverwijzingen naar H6a (eigen-inzicht-principe) en H1a (bouw geen deuren dicht) i.p.v. duplicatie. |
 
 | 4.17 | 3 juni 2026 | **F3 verkend (Stap 0) en vastgelegd.** Nieuwe sectie H10.3 — F3-inventarisatie: beide lokale tools (Intake Tool ~3.800 regels Flask; Uploadtool ~4.700 regels Tkinter + Playwright) doorgelicht. Conclusie: F3 is twee sporen van verschillende aard — Intake (web-native, lager risico) eerst, daarna Upload (desktop + browserrobot, hoger risico). Grootste core-winst: vier kopieën van ms_graph.py vervangen door core.graph_auth/graph_api. Negen sub-stappen (F3.0–F3.9) opgenomen in 1a/1b-discipline. **Veiligheidsregel vastgelegd als principe — geen secret in code die naar Git gaat:** voor de BAG-sleutel en Graph-auth valt naleving samen met de core-migratie (F3.2/F3.8), alleen het EnergielabelPortaal-wachtwoord vergt een aparte env-var-actie; roteren doet Kevin handmatig, los van de code-volgorde. H0a Bouwstatus bijgewerkt: F3 als "verkend, volgende = F3.2". Versie 4.16 → 4.17. |
+| 4.18 | 5 juni 2026 | **Org-verhuizing GitHub: `Keviniom` → `De-Energiemeneer`.** Alle repo's zijn van het persoonlijke GitHub-account `Keviniom` naar de organisatie `De-Energiemeneer` verhuisd. Repo-verwijzingen (clone-URL's, repo-namen) in Meesterbrein.md en ONBOARDING.md bijgewerkt naar `De-Energiemeneer/…`. Git-remotes van de lokale repo's omgezet (energiemeneer-core, admin-portal); de core-pin in de Intake Tool en in admin-portal bijgesteld naar `git+https://github.com/De-Energiemeneer/energiemeneer-core.git@v0.2.0` (admin-portal via PR, dat deployt). **Bewust ongemoeid gelaten:** verwijzingen naar het Railway-account 'keviniom' (dat is niet meeverhuisd) en de historische versiehistorie-regels — die beschrijven de situatie van toen en blijven correct. Versie 4.17 → 4.18. |
 
 *— Einde document —*
