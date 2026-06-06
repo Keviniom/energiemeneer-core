@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.23 |
+| **Versie** | 4.24 |
 | **Laatst bijgewerkt** | 6 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -57,7 +57,7 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 
 **Fundament — fase F1:** ✅ **volledig af** — core compleet (Modules 1–8, 159/159 tests groen).
 
-**Fase 2 (F2) — instroom-tools op de core:** 🔧 **bezig.**
+**Fase 2 (F2) — admin-portal volledig op de core:** ✅ **afgerond** (6 juni 2026). Alle gedeelde logica van de admin-portal komt nu uit `energiemeneer-core`: postcode, prijs, bag, ep_online, agenda-opmaak, bestand-IO, mailopmaak én de Microsoft Graph-koppeling.
 - ✅ **F2.0** — `energiemeneer-core` installeerbaar als Python-package via pip.
 - ✅ **F2.2 Stap 1a (plumbing)** — core als dependency + postcode-test, géén gedragsverandering. Bewezen op Railway PR-environment `admin-portal-pr-1`.
 - ✅ **F2.2 Stap 1b (postcode-vervanging)** — `normaliseer_postcode` in `server.py` vervangen door `core.bag.normaliseer_postcode`, lokale duplicaat verwijderd. **Gemerged naar main; productie draait nu op de core voor postcode-normalisatie.**
@@ -67,8 +67,12 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
 - ✅ **F2.2 Stap 4 (ep_online)** — de EP-Online-labelstatus achter `/api/ep` vervangen door een dunne adapter (`ep_online_lookup`) rond `core.ep_online.zoek_op_vbo` / `zoek_op_adres` (tegen tag **v0.2.0**). Het oude pad deed rauwe `(status, text)`-passthrough; de core geeft geparseerd / `None` / raise. Contract naar de frontend exact behouden: succes → zelfde JSON-array, geen label (EP 404) → `[]`, input ontbreekt → 400, EP-fout/ontbrekende key → HTTP 200 met foutenvelop (frontend toont "Geen label"). Bewuste keuze: de frontend (`fetchLabel`) leunt alleen op de body, niet op de HTTP-status, dus die blijft 200 behalve bij ontbrekende input. Hardcoded EP-fallback-sleutel verwijderd — `core.ep_online` eist `EP_ONLINE_KEY` strikt via env-var (geen fallback meer), staat nu op Railway (preview + productie). Contract-pariteitstest `tests/test_ep_pariteit.py` (oud urllib-pad vs nieuw core-pad, identieke gemockte EP-responses): 6/6 groen incl. kale omgeving, geen regressie (adres 5/5, prijs 334/334, postcode 6/6). Triviale opschoning: ongebruikte `urllib`-imports verwijderd. **Gemerged via PR #6; productie haalt labelstatus nu via de core.**
 - ✅ **F2.2 Stap 5 (Outlook-opmaak)** — de lokale opmaak van de opname-afspraak (titel + HTML-body + locatie; `_bouw_event_body` + titelopbouw in `ms_graph.py`) vervangen door `core.agenda_format.opmaak_opname` (tegen tag **v0.2.0**). **Alleen de opmaak** — de `ms_graph`-/Graph-aanroepen zelf blijven nog lokaal (latere stap); de start/eind-tijd voor het event blijft lokaal (UTC → Amsterdam). Eerst vergeleken, geen blinde swap: pariteitstest `tests/test_agenda_opmaak_pariteit.py` legt een bevroren verbatim-kopie van de oude opmaak naast de core op 8 representatieve gevallen — titel, tijd (UTC→Amsterdam incl. zomertijd), `m²`-uit-titel bij onbekende oppervlakte, locatie en body identiek. **Twee bewust goedgekeurde afwijkingen**, expliciet in de test vastgelegd: (1) de overbodige laatste `<br>` onderaan het zakelijk-blok valt weg (core is schoner); (2) de core html-escapet alle waarden (veiliger/correcter; de oude opmaak deed dat niet) — vastgelegd met een speciale-tekens-testgeval. Makelaar wordt nog niet doorgegeven (neutraal, leeg vergeleken). Geen env-var/Railway-actie nodig; geen regressie op de bestaande suites. **Gemerged via PR #7; admin-portal maakt de afspraak-opmaak nu via de core.**
 - ✅ **F2.2 Stap 6 (storage)** — de bestand-IO (datamap-detectie + atomic JSON lezen/schrijven) in `storage.py` en `instellingen.py` vervangen door `core.storage` (`vind_data_dir` / `pad_voor` / `laad_json` / `bewaar_json`, tegen tag **v0.2.0**). Lokaal behouden (draait nu op core eronder): de afspraken-CRUD (`sla_afspraak_op`, `haal_op`, `haal_op_outlook_id`, `update`, `annuleer`, `alle_aankomend`) en de settings-logica (defaults, diep-merge, validatie). Het module-`_lock` blijft om de volledige lees-wijzig-schrijf-cyclus heen (core lockt alleen de schrijf zelf). Bestandsnamen (`afspraken.json` / `instellingen.json`) en de atomiciteit gelijk; core checkt dezelfde volume-paden in dezelfde volgorde → op Railway blijft de data op `/app/data/<naam>` staan, **zelfde pad, geen migratie**. Round-trip-test `tests/test_storage_roundtrip.py` (CRUD + settings naar een tijdelijke datamap): 22/22 groen, geen regressie. Geen env-var/secret nodig. Buiten scope: token-persist (`token_persist.json`) in `ms_graph.py` — komt bij de Graph-stap. **Gemerged via PR #8; admin-portal leest/schrijft bestanden nu via de core.**
+- ✅ **F2 slotronde (A/B/C) — admin-portal volledig op de core:**
+  - **A — Makelaar in de Outlook-afspraak (frictie #9 → opgelost):** `klant['makelaar']` wordt nu doorgegeven aan `core.agenda_format.opmaak_opname`, dus de makelaar verschijnt in de afspraak (bij aanmaken én wijzigen). **Gemerged via PR #9.**
+  - **B — Mailopmaak naar de core:** nieuwe core-module **`email_format`** (klant- + admin-mails als pure functies, opgezet zoals `agenda_format`), uitgebracht als **core-tag v0.3.0** (core PR #2). Admin-portal stuurt zijn mails nu via `core.email_format`; de lokale `email_templates.py` is verwijderd. **Gemerged via PR #10.**
+  - **C — Microsoft Graph naar de core:** `ms_graph.py` is nu nog slechts een dunne shim over `core.graph_auth` (token ophalen/verversen/persistent + device-code-login) en `core.graph_api` (agenda-CRUD + mail); server.py wijzigt niet. **Gemerged via PR #11** (handmatig, na het zetten van de MS-env-vars + opnieuw inloggen — de core vraagt een bredere scope). Geverifieerd op productie: agenda, afspraak boeken/wijzigen/annuleren, mail, én de makelaar in de agenda-patch.
 
-**Volgende stap:** de grote resterende swap — `ms_graph` → `core.graph_auth` / `core.graph_api` (de Graph-aanroepen zelf: agenda lezen/maken/wijzigen/annuleren, mail, en de token-persist `token_persist.json`). Grootste overlap en hoogste risico; in deelstappen aanpakken, te plannen met Kevin. Let op: `core.events` is géén duplicaat-swap maar nieuwe dashboard-instrumentatie — een feature-toevoeging, apart. Zelfde patroon (branch → PR → Railway-preview → merge na functionele check). Losse aandachtspunten blijven: secrets roteren (H8.3) en de aantekeningen voor consolidatie hieronder.
+**Volgende stap:** F2 is klaar. Openstaand: **secret-rotatie** (Kevins handmatige klus — BAG + EP, H8.3), de **wachtwoord-fix** in de admin-portal (frictie #10, voorbereiden op meerdere accounts — zie H1a), en de bredere platformfases (centrale datalaag, jobs, dashboard — zie H10). De volgende grote fase is **F3** (Intake + Upload als online modules op de core).
 
 **Fase 3 (F3) — Intake + Upload als online modules op de core:** 🔎 **verkend
 (Stap 0 klaar).** Beide tools doorgelicht; conclusie vastgelegd in H10.3. F3
@@ -83,7 +87,7 @@ risico) eerst, daarna Upload (desktop + Playwright-browserrobot, hoger risico).
   wegstrangleren (eigen ms_graph → core.graph_auth/graph_api, bag → core.bag,
   prijs → core.prijs, logging → core.events). Uitvoering in een aparte sessie.
 
-📌 Sinds versie 4.15 bestaat er een levende frictielijst (sectie H6a — Productieve frictie). Bevat 9 punten (1 deels opgelost, 8 open); gebruik als input bij elke prioriteringskeuze.
+📌 Sinds versie 4.15 bestaat er een levende frictielijst (sectie H6a — Productieve frictie). Bevat 10 punten (#9 makelaar-in-agenda opgelost in F2, #3 deels; rest open); gebruik als input bij elke prioriteringskeuze.
 
 📌 Sinds versie 4.15 is de schaal-ambitie vastgelegd in sectie H1a — Schaal-horizon (multi-user intern + abonnement voor concullega's). Geen fase, wél input voor architectuur-keuzes (auth, datalaag, hosting, billing).
 
@@ -98,13 +102,15 @@ risico) eerst, daarna Upload (desktop + Playwright-browserrobot, hoger risico).
 - Testknop op `/instellingen` die een admin-notificatie stuurt zónder een afspraak in te plannen — spaart tijd bij elke mail-gerelateerde wijziging. Eigen PR, geen onderdeel van de strangler.
 - Productie `/instellingen` controleren: vermoedelijk staan de bedrijfsgegevens daar net zo leeg/fout als op de preview vóór de fix. Bij het eerstvolgende productie-bezoek invullen (email, telefoon, website, KvK, BTW).
 - ✅ Agenda-opmaak gemigreerd naar `core.agenda_format` (F2 Stap 5, gemerged via PR #7). Resteert: de `ms_graph`-/Graph-aanroepen zelf (latere stap).
-- **Makelaar komt nog steeds niet terug in de agenda-afspraak** (bevestigd door Kevin op 6 juni 2026, nog open). Admin-portal geeft `makelaar` niet door aan `agenda_format.opmaak_opname` (in Stap 5 bewust leeg gehouden = gedragsneutraal). De core ondersteunt het wél (parameter `makelaar=`, rendert een "Makelaar:"-blok in de body). Resterend werk: de makelaar uit de opdracht-/klantgegevens doorgeven via `server.py` (`/api/afspraak`) → `ms_graph._bouw_event_body` → de opmaak. Losse feature voor later (zie frictie #9, H6a).
+- ✅ **Makelaar komt nu terug in de agenda-afspraak** (F2 slotronde A, PR #9): `klant['makelaar']` wordt doorgegeven aan `core.agenda_format.opmaak_opname` → "Makelaar:"-blok in de body, bij aanmaken én wijzigen. Frictie #9 opgelost.
 - **WSL/Claude Code brak herhaaldelijk op Kevins Windows** (foutcode `Wsl/0x80070422`) doordat CCleaner de dienst **WSLService** telkens uitschakelde. Directe fix: WSLService op 'Handmatig' zetten (`Set-Service -Name WSLService -StartupType Manual` + `Start-Service`). Blijvende oplossing: CCleaner verwijderen, of z'n automatische run / Health Check / Performance Optimizer uitzetten.
 - **Claude Code-toestemmingen op gebruikersniveau** voor ononderbroken doorbouwen — allow: `Bash(*)`, `Edit`, `Write`; deny: `Bash(rm -rf *)`, `Bash(git reset --hard *)`, `Bash(git clean -f*)`. Werkwijze: Kevin verleent zoveel mogelijk toestemming vooraf (zelfstandig branchen / schrijven / committen / branch pushen / PR openen); de harde grens blijft: **niet zelf mergen naar main/productie** — stoppen op een groene PR-preview voor Kevins functionele check + merge-go. (Overweeg dit ook in H0b te verankeren.) Aandachtspunt: `cd`-commando's blijven om veiligheid vragen ondanks de allow-lijst — start Claude Code in de projectmap om dat te vermijden. Klein: `gh` (GitHub CLI) installeren zodat PR's niet via het credential-bestand hoeven.
 - **Adres-autosuggest leeft in de browser, niet op de server:** `opdracht.html` doet de PDOK-autosuggest rechtstreeks vanuit de browser (`api.pdok.nl`); er is géén server-endpoint. Dat naar `core.bag.vrij_zoeken` trekken via een nieuw server-endpoint is een nette aparte latere stap.
 - **Oude hardcoded BAG- én EP-Online-sleutel staan nu in de git-historie (verbrand):** door Stap 3 (BAG) en Stap 4 (EP) zijn beide fallbacks uit `server.py` verdwenen; roteren bij Kadaster resp. EP-Online + de env-vars bijwerken is urgenter geworden. Hoort bij H8.3.
 - **Startpunt voor frictie #7 (huisletter-bug, H6a):** `/api/adres` geeft alleen postcode + huisnummer door, géén huisletter — dat verklaart de 34-vs-34A-bug. Nuttig vertrekpunt zodra #7 wordt opgepakt.
 - **EP-fout wordt stil "Geen label" (latente quirk, behouden in Stap 4):** `/api/ep` geeft bij een EP-Online-fout (401/403/500/onbereikbaar) HTTP 200 met een foutenvelop terug, waarna de frontend "Geen label" toont. Bewust gedragsneutraal gehouden; een échte foutmelding tonen i.p.v. stilte is een latere, niet-neutrale verbetering (kandidaat voor H6a).
+- **Bredere Graph-scope sinds F2/C (lage prioriteit):** door de overstap op `core.graph_auth` vraagt de admin-portal-MS-app nu de volle core-scope (`Files.ReadWrite Tasks.ReadWrite Notes.ReadWrite Calendars.ReadWrite Mail.Send offline_access`) terwijl alleen agenda + mail wordt gebruikt — ruimer dan strikt nodig. Inperken = least-privilege; vergt een aparte core-keuze (scope parametriseerbaar per tool i.p.v. één vaste `_SCOPE`). Vastleggen, geen haast.
+- **Wachtwoord wijzigen in de admin-portal werkt niet** (nieuw, frictie #10): te fixen — en meteen zó opzetten dat het later meegroeit naar meerdere accounts (zie de account-note onder H1a), zodat het geen doodlopende weg wordt.
 
 # 0b. Werkwijze — drie rollen, één doel
 
@@ -209,6 +215,8 @@ Het platform wordt nu gebouwd voor één gebruiker (Kevin). Op termijn wil De En
 - **Pricing/billing-laag:** wordt te zijner tijd een eigen module (Stripe of vergelijkbaar, met een mogelijke koppeling naar SnelStart en het bestaande F8-spoor).
 
 Kortom: bouw geen deuren dicht. Waar een keuze tussen "single-user simpel" en "multi-user-klaar" weinig extra kost, kiezen we bewust de laatste.
+
+> **Account-note (6 juni 2026):** echte accounts (login per medewerker, rollen) komen later, samen met het dashboard. De openstaande **wachtwoord-fix in de admin-portal (frictie #10)** wordt daarop voorbereid: opzetten als een kleine account-/wachtwoordlaag die later kan meegroeien naar meerdere accounts, niet als een eenmalige single-user-hack. Zo wordt de fix geen doodlopende weg.
 
 # 2. Bedrijfsprofiel
 
@@ -363,6 +371,71 @@ Het huidige Aanmeldformulier (klant-self-service via Calendly) en het Admin Port
 
 > **Wens van Kevin, vastgelegd** De agenda-/afsprakenfunctie van het Aanmeldformulier wordt vervangen door de nieuwere versie uit het Admin Portal (eigen Outlook-slot-grid, klant-portaal met wijzigen/annuleren via token-link, bevestigings-/wijzigings-/annuleringsmails). De Admin Portal is daarmee de basis voor de gefuseerde instroom-module.
 
+# 5a. Het bedrijfsproces — de dossier-levenscyclus
+
+> Deze sectie is de **ruggengraat** van het platform: het echte werkproces van één opdracht, van eerste aanvraag tot afgeronde (betaalde) dossier. Architectuur (H3–H6), modules (H7), datamodel (H9.5) en frictie (H6a) hangen hieraan op. De dashboard-pijplijn (H6) is een *weergave* van dit proces.
+
+## 5a.1 Principe 1 — één keer invoeren, overal hergebruiken (harde regel)
+
+Klant-, adres- en makelaargegevens worden bij de **vroegst mogelijke stap één keer** vastgelegd in het dossier (sleutel = **VBO-ID**) en daarna alleen nog **gelezen of aangevuld** — nooit opnieuw ingevoerd of opgezocht. De koppeling **makelaar ↔ klant ↔ adres** wordt één keer gemaakt en is daarna overal beschikbaar: agenda, opdrachtbevestiging, offerte, factuur (met de makelaar in cc), label en mails. Dit is knelpunt **K1** als harde procesregel: wie iets twee keer moet intypen of opzoeken, raakt een ontwerpfout.
+
+## 5a.2 Principe 2 — een flexibele, data-gestuurde levenscyclus
+
+De levenscyclus is **geen vast aantal stappen** maar een **beheerde lijst** die later vanuit het dashboard aangepast, uitgebreid en herordend kan worden. Elke stap heeft een vast set velden:
+
+| **Veld** | **Betekenis** |
+| --- | --- |
+| naam | wat er gebeurt |
+| eigenaar | wie 'm uitvoert: Kevin / automatisch / klant / extern |
+| trigger | wat de stap start |
+| klaar-conditie | wanneer de stap af is |
+| wacht-op | klant / extern / Kevin / niets |
+| status | gebouwd / deels / frictie / nog niks — met link naar de module (H7) of frictie (H6a) |
+
+## 5a.3 De stappen (basis: energielabel, ~13)
+
+| **#** | **Stap** | **Eigenaar** | **Wacht op** | **Status** |
+| --- | --- | --- | --- | --- |
+| 1 | Lead / aanvraag binnen | klant of Kevin | — | Deels (module Instroom, H7.1) |
+| 2 | Offerte uitbrengen + akkoord | Kevin | klant | Nog niks |
+| 3 | Klant aanmaken + afspraak inplannen + opdrachtbevestiging | Kevin / automatisch | — | Gebouwd — frictie #2/#4 (bevestiging dubbelop) |
+| 4 | Dossier voorbereiden | automatisch (Job A / Voorbereiding, H7.2) | — | Gebouwd (lokaal) |
+| 5 | Opname op locatie | Kevin | — | Handwerk (status-tracking ontbreekt) |
+| 6 | Opname uitwerken (VABI) | Kevin | — | Handwerk |
+| 7 | Kwaliteits- / BRL-controle | Kevin | — | Nog niks |
+| 8 | Registreren bij EP-Online | Kevin / automatisch | — | Deels |
+| 9 | Rapport delen met klant + offerte → factuur | Kevin | klant | Frictie #1 (de oorspronkelijke pijn) |
+| 10 | Dossier uploaden (EnergielabelPortaal) | automatisch (Job B / Upload, H7.3) | — | Gebouwd (lokaal) |
+| 11 | Archiveren (OneDrive-archief) | automatisch | — | Deels |
+| 12 | Betaling controleren / debiteurenbeheer (SnelStart) | Kevin | klant | Niet gekoppeld |
+| 13 | Factuur betaald? → dossier afgerond | automatisch / Kevin | — | Nog niks |
+
+## 5a.4 Productvarianten (overlays)
+
+Eén proces, varianten erbovenop. Elk dossier draagt een **producttype** dat zijn sjabloon kiest; de varianten passen losse stappen aan zonder het proces te splitsen:
+
+| **Producttype** | **Afwijking t.o.v. de basis** |
+| --- | --- |
+| Maatwerk-particulier | Géén EP-Online-registratie (stap 8) en géén EnergielabelPortaal-upload (stap 10); ander rapport; rest grotendeels gelijk. |
+| VvE-maatwerk | Begint met **KvK → adressenlijst** (module VvE-adressen, H7.4) vóór de opname; **meerdere adressen** in één traject; ander rapport. |
+
+## 5a.5 Hoe het dashboard dit toont
+
+- **Pijplijn-bord (kanban):** elk dossier is een kaart in zijn huidige stap; per producttype een eigen lijn.
+- **"Hangt op"-overzicht:** welke dossiers wachten en op wie (klant / extern / Kevin).
+- **Technische gezondheid:** API-status (BAG / EP / Graph-token / secret-verloop), mislukte mails, mislukte jobs — met tijd + oorzaak; opgeloste fouten verdwijnen vanzelf.
+- **Dossier-detail:** alle gegevens + documenten + event-historie op één plek.
+
+## 5a.6 Verankering (kruisverwijzingen)
+
+Deze sectie is de ruggengraat; de andere secties verwijzen ernaar zonder elkaar te overschrijven:
+
+- **H6 (Dashboard)** — de pijplijn rendert uit deze stappen.
+- **H7 (Modules)** — beschrijft *wie* de stappen uitvoert (Instroom, Voorbereiding, Upload, VvE).
+- **H9.5 (Datamodel)** — waar de één-keer-ingevoerde data leeft (dossier op VBO-ID).
+- **H6a (Frictie)** — de pijn per stap (o.a. #1 bij stap 9, #2/#4 bij stap 3).
+- **Events-tabel (H4.2 / module 8)** — logt gebeurtenissen tegen deze stappen.
+
 # 6. Het Dashboard — één overzicht
 
 Het dashboard is het zenuwcentrum dat Kevin in één oogopslag laat zien hoe het platform ervoor staat. Het leest uit de centrale events-tabel en de modulestatussen.
@@ -401,7 +474,8 @@ Dit is een **levend document**. Frictie die herhaaldelijk wordt gevoeld is een s
 | 6 | Spoed-aanvinkbox bij afspraak inplannen met melding "+ €35 incl. BTW" wanneer mogelijk. Maakt eerste 48 uur zichtbaar in de agenda (standaard nu als bezette ruimte ingebouwd). | gewenst | nog niet meetbaar | Feature | eigen PR | Open — geschikt voor nieuwe collega |
 | 7 | Sommige adressen geven foute resultaten in nieuwe-opdracht-aanvragen, bijv. Stille Veerkade 34 vs 34A → dezelfde gegevens. | onbekend (wel reproduceerbaar) | zelden maar wel data-integriteitsrisico | Bug | onderzoek (huisletter-handling in BAG-koppeling) | Open |
 | 8 | Inkomende makelaar-aanvraag via aanmeldformulier vergt nu handmatig overkopiëren: gegevens naar admin-portal voor de agenda, daarna SnelStart voor de boekhouding, daarna opdrachtbevestiging + offerte sturen. | nog invullen | nog invullen | Proces/integratie | F3 + F4 + F8 | Open |
-| 9 | Makelaar wordt wel benoemd in admin-portal maar komt niet terug in de agenda-patch. | bij elke makelaar-aanvraag | nog invullen | Bug | losse feature: makelaar doorgeven aan `core.agenda_format.opmaak_opname` (de core ondersteunt het al sinds F2 Stap 5; admin-portal geeft 'm nog niet door) | Open (bevestigd 6 juni 2026) |
+| 9 | Makelaar wordt wel benoemd in admin-portal maar komt niet terug in de agenda-patch. | bij elke makelaar-aanvraag | nog invullen | Bug | F2 slotronde A (PR #9) | ✅ **Opgelost** (6 juni 2026) — `klant['makelaar']` gaat nu via `core.agenda_format.opmaak_opname` naar de Outlook-afspraak (bij aanmaken én wijzigen). |
+| 10 | Wachtwoord wijzigen in de admin-portal werkt niet. | onbekend | nog invullen | Bug | losse fix — meteen zó opzetten dat het meegroeit naar meerdere accounts (zie H1a) | Open (nieuw, 6 juni 2026) |
 
 **Hoe we deze lijst gebruiken**
 
@@ -707,5 +781,6 @@ verkenning vóór er code beweegt.
 | 4.21 | 6 juni 2026 | **F2 Stap 4 (ep_online) afgerond en gemerged.** De EP-Online-labelstatus achter `/api/ep` vervangen door een dunne adapter (`ep_online_lookup`) rond `core.ep_online.zoek_op_vbo` / `zoek_op_adres` (tegen tag v0.2.0). Oud pad deed rauwe `(status, text)`-passthrough; core geeft geparseerd / `None` / raise. Frontend-contract exact behouden: succes → zelfde JSON-array, geen label (EP 404) → `[]`, input ontbreekt → 400, EP-fout/ontbrekende key → HTTP 200 met foutenvelop (frontend toont "Geen label"). Bewuste keuze: de frontend leunt alleen op de body, niet op de HTTP-status. Hardcoded EP-fallback-sleutel verwijderd — `core.ep_online` eist `EP_ONLINE_KEY` strikt via env-var (staat nu op Railway preview + productie). Contract-pariteitstest `tests/test_ep_pariteit.py`: oud urllib-pad vs nieuw core-pad tegen identieke gemockte EP-responses; 6/6 groen incl. kale omgeving, geen regressie (adres 5/5, prijs 334/334, postcode 6/6). Triviale opschoning: ongebruikte `urllib`-imports verwijderd. Gemerged via PR #6; productie haalt labelstatus nu via de core. H0a bijgewerkt (Stap 4 ✅, volgende = Stap 5: resterende overlap — `ms_graph` → `core.graph_auth`/`graph_api`, agenda-opmaak → `core.agenda_format`, logging → `core.events`). **Consolidatie-aantekeningen bijgewerkt:** verbrande-sleutel-notitie uitgebreid naar BAG + EP (beide te roteren, H8.3), en een nieuwe quirk-notitie (EP-fout → stil "Geen label", behouden; echte foutmelding is latere niet-neutrale verbetering). Versie 4.20 → 4.21. |
 | 4.22 | 6 juni 2026 | **F2 Stap 5 (Outlook-opmaak) afgerond en gemerged + architectuur-afspraak.** De lokale opmaak van de opname-afspraak (titel + HTML-body + locatie; `_bouw_event_body` + titelopbouw in `ms_graph.py`) vervangen door `core.agenda_format.opmaak_opname` (tag v0.2.0). Alleen de opmaak — de `ms_graph`-/Graph-aanroepen zelf blijven nog lokaal (latere stap); start/eind-tijd blijft lokaal (UTC→Amsterdam). Eerst vergeleken, geen blinde swap: `tests/test_agenda_opmaak_pariteit.py` legt een bevroren verbatim-kopie van de oude opmaak naast de core op 8 representatieve gevallen — titel, tijd (incl. zomertijd), m²-uit-titel, locatie en body identiek. Twee bewust goedgekeurde afwijkingen, vastgelegd in de test: (1) de overbodige laatste `<br>` onderaan het zakelijk-blok valt weg (core schoner); (2) de core html-escapet alle waarden (veiliger; oude opmaak niet) — met een speciale-tekens-testgeval. Makelaar nog niet doorgegeven (neutraal, leeg). Geen env-var/Railway-actie; geen regressie (ep 6/6, adres 5/5, prijs 334/334, postcode 6/6). Gemerged via PR #7. **Architectuur-afspraak vastgelegd in H4.1:** één Meesterbrein blijft de enige bron van waarheid (geen apart "opmaak"-brein); "opmaak/merk" valt uiteen in (a) de merk-laag in de core (Python: `agenda_format` nu, `email_templates` als volgende consolidatie) en (b) een gedeelde web-UI/design system in de Portal-laag (latere fase, bij de portal-fusie). Aantekeningen bijgewerkt: agenda-format-migratie afgevinkt, makelaar-in-agenda als losse latere feature genoteerd. Versie 4.21 → 4.22. |
 | 4.23 | 6 juni 2026 | **F2 Stap 6 (storage) afgerond en gemerged.** De bestand-IO (datamap-detectie + atomic JSON lezen/schrijven) in `storage.py` en `instellingen.py` vervangen door `core.storage` (`vind_data_dir` / `pad_voor` / `laad_json` / `bewaar_json`, tag v0.2.0). Lokaal behouden (nu op core eronder): de afspraken-CRUD en de settings-logica (defaults, diep-merge, validatie); het module-`_lock` blijft om de volledige lees-wijzig-schrijf-cyclus heen (core lockt alleen de schrijf zelf). Bestandsnamen (`afspraken.json` / `instellingen.json`) en atomiciteit gelijk; core checkt dezelfde volume-paden in dezelfde volgorde → op Railway blijft de data op `/app/data/<naam>` staan, zelfde pad, geen migratie. Round-trip-test `tests/test_storage_roundtrip.py` (CRUD + settings naar een tijdelijke datamap): 22/22 groen, geen regressie; geen env-var/secret nodig. Buiten scope: token-persist (`token_persist.json`) in `ms_graph.py` — komt bij de Graph-stap. Gemerged via PR #8. H0a bijgewerkt (Stap 6 ✅, volgende = grote swap `ms_graph` → `core.graph_auth`/`core.graph_api` incl. token-persist). **Notitie (Kevin, 6 juni):** makelaar komt nog steeds niet terug in de agenda-patch — admin-portal geeft `makelaar` nog niet door aan `core.agenda_format.opmaak_opname` (core ondersteunt het al sinds Stap 5); frictie #9 + consolidatie-aantekening bijgewerkt. Versie 4.22 → 4.23. |
+| 4.24 | 6 juni 2026 | **F2 afgerond (admin-portal volledig op de core) + nieuwe processectie.** Slotronde A/B/C: **A** — makelaar verschijnt nu in de Outlook-afspraak (frictie #9 opgelost, PR #9); **B** — nieuwe core-module `email_format` (klant- + admin-mailopmaak als pure functies) uitgebracht als **core-tag v0.3.0** (core PR #2), admin-portal-mails lopen nu via `core.email_format`, lokale `email_templates.py` verwijderd (PR #10); **C** — `ms_graph.py` is nu een dunne shim over `core.graph_auth` (token/persist/device-login) + `core.graph_api` (agenda + mail), server.py ongewijzigd (PR #11, handmatig gemerged na MS-env-vars + opnieuw inloggen vanwege de bredere core-scope). Netto: alle gedeelde logica van de admin-portal komt nu uit de core (postcode, prijs, bag, ep_online, agenda-opmaak, bestand-IO, mailopmaak, Graph). H0a + H6a bijgewerkt (F2 ✅, frictie #9 opgelost, frictie #10 wachtwoord-fix toegevoegd). Aantekeningen: bredere Graph-scope (least-privilege als latere core-keuze), secret-rotatie BAG+EP nog open (H8.3), account-note onder H1a (wachtwoord-fix voorbereiden op meerdere accounts). **Nieuwe sectie H5a — Het bedrijfsproces (dossier-levenscyclus):** de ruggengraat met principe 1 (één keer invoeren, overal hergebruiken — K1 als harde regel), principe 2 (flexibele data-gestuurde levenscyclus), de ~13 basisstappen (energielabel), productvarianten (maatwerk-particulier, VvE-maatwerk), de dashboard-weergave en verankering naar H6/H7/H9.5/H6a/events. Versie 4.23 → 4.24. |
 
 *— Einde document —*
