@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.25 |
+| **Versie** | 4.26 |
 | **Laatst bijgewerkt** | 6 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -72,20 +72,13 @@ Het document scheidt nu vier soorten informatie, zodat het een stuurinstrument w
   - **B — Mailopmaak naar de core:** nieuwe core-module **`email_format`** (klant- + admin-mails als pure functies, opgezet zoals `agenda_format`), uitgebracht als **core-tag v0.3.0** (core PR #2). Admin-portal stuurt zijn mails nu via `core.email_format`; de lokale `email_templates.py` is verwijderd. **Gemerged via PR #10.**
   - **C — Microsoft Graph naar de core:** `ms_graph.py` is nu nog slechts een dunne shim over `core.graph_auth` (token ophalen/verversen/persistent + device-code-login) en `core.graph_api` (agenda-CRUD + mail); server.py wijzigt niet. **Gemerged via PR #11** (handmatig, na het zetten van de MS-env-vars + opnieuw inloggen — de core vraagt een bredere scope). Geverifieerd op productie: agenda, afspraak boeken/wijzigen/annuleren, mail, én de makelaar in de agenda-patch.
 
-**Volgende stap:** F2 is klaar; de wachtwoord-fix (frictie #10) is intussen ook opgelost. Openstaand: **secret-rotatie** (Kevins handmatige klus — BAG + EP, H8.3) en de bredere platformfases (centrale datalaag, jobs, dashboard — zie H10). De volgende grote fase is **F3** (Intake + Upload als online modules op de core).
+**Volgende stap:** F2 is klaar; de wachtwoord-fix (frictie #10) is opgelost. **F3 is gestart** (zie hieronder): het eerste online-increment van "Dossier voorbereiden" draait. Openstaand: de resterende "Dossier voorbereiden"-onderdelen (deels Kevins beslissing), het afgesplitste Upload-spoor, **secret-rotatie** (BAG + EP, H8.3) en de bredere platformfases (datalaag, jobs, dashboard — zie H10).
 
-**Fase 3 (F3) — Intake + Upload als online modules op de core:** 🔎 **verkend
-(Stap 0 klaar).** Beide tools doorgelicht; conclusie vastgelegd in H10.3. F3
-valt in twee sporen van verschillende aard: Intake (Flask, web-native, lager
-risico) eerst, daarna Upload (desktop + Playwright-browserrobot, hoger risico).
-- ⛔ **Veiligheidsregel bewaakt elke F3-repo-push:** geen tool-code naar Git met
-  een hardcoded secret erin. Voor de BAG-sleutel en Graph-auth valt dit samen met
-  de core-migratie (F3.2 / F3.8); alleen het EnergielabelPortaal-wachtwoord vergt
-  een aparte env-var-actie. Roteren doet Kevin handmatig (deze week), los van de
-  code.
-- ⬜ **Volgende concrete stap = F3.2** — Intake: eerste core-overlap
-  wegstrangleren (eigen ms_graph → core.graph_auth/graph_api, bag → core.bag,
-  prijs → core.prijs, logging → core.events). Uitvoering in een aparte sessie.
+**Fase 3 (F3) — Dossier voorbereiden + Upload als online modules op de core:** 🔧 **bezig.**
+- ✅ **Dossier voorbereiden — eerste online-increment (PR #13):** de online-veilige kern van de oude *Intake Tool* (voortaan **"Dossier voorbereiden"**) draait nu als route **in de admin-portal**: `/voorbereiden` + `GET /api/voorbereiden` halen BAG (core.bag), 3DBAG-gebouwhoogte, voorgevel-oriëntatie, woningtype/VABI-bouwjaarklasse en prijs (core.prijs) op. Nieuwe module `voorbereiden.py` (geport uit `data_api.py`, leesbron); op de core, additief, raakt het aanmeldformulier niet.
+- ⬜ **Resteert voor "Dossier voorbereiden" (deels Kevins beslissing):** VABI .epa-generatie (vereist lokale VABI-templates → F3.5), dossier-output naar OneDrive via `core.graph_api` (outputvorm → F3.3), bewijs-PDF via Playwright (headless browser, onbewezen op Railway), OneNote/To Do-aanmaak.
+- ⬜ **Upload-spoor afgesplitst** naar een eigen latere fase (richting F6): extern EnergielabelPortaal + 2FA-uit-mail + portaal-credential + headless browser = aparte, zorgvuldige verkenning.
+- ⛔ **Veiligheidsregel blijft:** geen secret in code die naar Git gaat (BAG/Graph vallen samen met de core-migratie; EnergielabelPortaal-wachtwoord apart bij het Upload-spoor). Roteren: handmatig door Kevin.
 
 📌 Sinds versie 4.15 bestaat er een levende frictielijst (sectie H6a — Productieve frictie). Bevat 10 punten (#9 makelaar-in-agenda en #10 wachtwoord-wijzigen opgelost, #3 deels; rest open); gebruik als input bij elke prioriteringskeuze.
 
@@ -110,6 +103,7 @@ risico) eerst, daarna Upload (desktop + Playwright-browserrobot, hoger risico).
 - **Startpunt voor frictie #7 (huisletter-bug, H6a):** `/api/adres` geeft alleen postcode + huisnummer door, géén huisletter — dat verklaart de 34-vs-34A-bug. Nuttig vertrekpunt zodra #7 wordt opgepakt.
 - **EP-fout wordt stil "Geen label" (latente quirk, behouden in Stap 4):** `/api/ep` geeft bij een EP-Online-fout (401/403/500/onbereikbaar) HTTP 200 met een foutenvelop terug, waarna de frontend "Geen label" toont. Bewust gedragsneutraal gehouden; een échte foutmelding tonen i.p.v. stilte is een latere, niet-neutrale verbetering (kandidaat voor H6a).
 - **Bredere Graph-scope sinds F2/C (lage prioriteit):** door de overstap op `core.graph_auth` vraagt de admin-portal-MS-app nu de volle core-scope (`Files.ReadWrite Tasks.ReadWrite Notes.ReadWrite Calendars.ReadWrite Mail.Send offline_access`) terwijl alleen agenda + mail wordt gebruikt — ruimer dan strikt nodig. Inperken = least-privilege; vergt een aparte core-keuze (scope parametriseerbaar per tool i.p.v. één vaste `_SCOPE`). Vastleggen, geen haast.
+- **F3 "Dossier voorbereiden" — open beslispunten voor de resterende onderdelen:** (1) **VABI .epa** vereist de lokale VABI-templates in `AppData` → draait niet op Railway; keuze: lokaal/handmatig houden, templates meeleveren, of VABI-loos onderzoeken (F3.5). (2) **Dossier-output**: nu schrijft de oude tool naar de OneDrive-sync-map; online moet dat via `core.graph_api.onedrive` — outputvorm te kiezen (F3.3). (3) **Bewijs-PDF** gebruikt Playwright (headless browser) — zelfde onbewezen-op-Railway-risico als het Upload-spoor. (4) OneNote/To Do-aanmaak. Het eerste data-increment (PR #13) raakt geen van deze.
 - ✅ **Wachtwoord wijzigen werkt nu** (frictie #10 opgelost, PR #12): nieuwe lokale module `accounts.py` met gehashte wachtwoorden (stdlib pbkdf2-sha256, random salt) persistent op de volume via `core.storage` (`accounts.json`). Multi-account-klaar (dict gebruiker→hash, vandaag één `admin`). `ADMIN_PASSWORD` is nog slechts de **seed** bij een lege store; daarna is `accounts.json` leidend. Endpoint `POST /api/wachtwoord` + sectie op de instellingen-pagina. Later te verhuizen naar een gedeelde core auth-module (voorbereiding op dashboard-accounts, H1a).
 
 # 0b. Werkwijze — drie rollen, één doel
@@ -312,10 +306,10 @@ Eén Python-package die alle herbruikbare businesslogica bevat. Vandaag staat de
 | **Module** | **Verantwoordelijkheid** | **Vervangt nu de kopie in** |
 | --- | --- | --- |
 | graph_auth | Microsoft-token ophalen, verversen, persistent bewaren | Aanmeldformulier + Admin Portal (dubbel) |
-| graph_api | Agenda, To Do, Mail, OneDrive, OneNote via Graph | Aanmeldformulier + Intake + Upload |
+| graph_api | Agenda, To Do, Mail, OneDrive, OneNote via Graph | Aanmeldformulier + Dossier voorbereiden + Upload |
 | bag | Adres- en pandgegevens (BAG + PDOK) | Alle vier + VvE-tool |
 | ep_online | Energielabel-status (EP-Online v5) | Aanmeldformulier + Admin Portal |
-| prijs | Prijsmatrix (§2.5 / H9) | Aanmeldformulier + Admin + Intake |
+| prijs | Prijsmatrix (§2.5 / H9) | Aanmeldformulier + Admin + Dossier voorbereiden |
 | agenda_format | Outlook titel/body-opmaak (het “merk”) | Aanmeldformulier + Admin Portal |
 | storage | Volume-pad-detectie + atomic JSON/DB-opslag | Aanmeldformulier + Admin (3 kopieën) |
 | events | Centrale logging: schrijf event naar datalaag | Nieuw — basis voor dashboard |
@@ -500,14 +494,15 @@ Doel: aanvragen binnenhalen — via klant-self-service (formulier + Calendly) é
 | Admin Portal | Live op Railway (De-Energiemeneer/admin-portal). Eigen slot-grid, klant-portaal via token, bevestig-/wijzig-/annuleer-mails. |
 | Te doen | Fuseren tot één backend op de core; agenda-functie van formulier vervangen door Admin-versie; bron-veld toevoegen; verhuizen naar eigen hosting. |
 
-## 7.2 Module: Voorbereiding (Intake Tool v4.9)
+## 7.2 Module: Dossier voorbereiden (voorheen "Intake Tool" v4.9)
 
 Doel: per opname automatisch een compleet dossier opbouwen uit BAG, 3DBAG, oriëntatie, bewijsdocument, VABI-template, OneDrive-map, OneNote en To Do-taak.
 
 | **Aspect** | **Status** |
 | --- | --- |
 | Kern | Werkend, lokaal (Flask op :5000). Voorgeveloriëntatie 95–98%, .epa-generatie, VBO-ID duplicate-detectie. |
-| Te doen | Op de core trekken (eigen ms_graph laten vallen); naar online module; aangestuurd door Job A. |
+| Online (F3) | **Eerste increment live in de admin-portal** (route `/voorbereiden`, PR #13): online-veilige data-gathering — BAG (core.bag), 3DBAG-hoogte, voorgevel-oriëntatie, woningtype/VABI-bouwjaarklasse, prijs (core.prijs) — via module `voorbereiden.py`. |
+| Te doen | VABI .epa-generatie (lokale templates → F3.5), dossier-output naar OneDrive via core.graph_api (F3.3), bewijs-PDF via Playwright (onbewezen op Railway), OneNote/To Do; daarna aangestuurd door Job A. |
 
 ## 7.3 Module: Upload (Uploadtool)
 
@@ -539,7 +534,7 @@ Doel: particulier verduurzamingsadvies en VvE-maatwerkadvies als volwaardige tra
 | --- | --- | --- |
 | Aanmeldformulier | Railway (US East) + volume | De-Energiemeneer/energiemeneer-aanmeldformulier |
 | Admin Portal | Railway | De-Energiemeneer/admin-portal |
-| Intake Tool | Lokaal Windows (Flask :5000) | lokaal / backend |
+| Dossier voorbereiden (was Intake Tool) | Lokaal Windows (Flask :5000); eerste online-increment als route in admin-portal | lokaal + admin-portal |
 | Uploadtool | Lokaal Windows (Tkinter) | lokaal / backend |
 | VvE-tool | Los CLI-script | (VvE-repo) |
 
@@ -567,7 +562,7 @@ Aandachtspunten bij migratie (te bewaken):
 
 ## 8.4 Beslispunt B2 — stack-keuze bij fusie
 
-Aanmeldformulier en Admin Portal draaien nu beide op een rauwe Python http.server. Intake gebruikt Flask. Voorstel: bij de fusie alles op Flask zetten zodat de hele backend-stack consistent is en de core-modules overal hetzelfde werken. Alternatief: rauwe http.server samenvoegen (minder migratiewerk nu, maar twee smaken backend op termijn).
+Aanmeldformulier en Admin Portal draaien nu beide op een rauwe Python http.server. De oude Dossier-voorbereiden-tool gebruikt Flask (het eerste online-increment draait nu echter als route in de admin-portal op http.server). Voorstel: bij de fusie alles op Flask zetten zodat de hele backend-stack consistent is en de core-modules overal hetzelfde werken. Alternatief: rauwe http.server samenvoegen (minder migratiewerk nu, maar twee smaken backend op termijn).
 
 # 9. Contracten — de bron van waarheid
 
@@ -634,7 +629,7 @@ Deze volgorde wijkt bewust af van de oude roadmap (waar de Klant-Index P2 was en
 | F0 | Secrets opschonen + repo’s taggen | Veiligheid; natuurlijk moment vóór verhuizing | Direct |
 | F1 | energiemeneer-core extraheren (storage, auth, graph, bag, ep, prijs, agenda) | Fundament; maakt al het andere goedkoper; lost K2+K4 op | ✅ Klaar (Modules 1–8, 159/159 tests) |
 | F2 | Fusie Aanmeldformulier + Admin Portal op de core | Één instroom-backend, één login, één token; lost K3 deels op | 🔧 Mee bezig (F2.0 klaar, zie H10.2) |
-| F3 | Intake + Upload als online modules op de core | Tools op de core; directe productiviteitswinst voor het hoofddoel | Na F2 |
+| F3 | Dossier voorbereiden online op de core (Upload-spoor afgesplitst naar een latere fase) | Tools op de core; directe productiviteitswinst voor het hoofddoel | Na F2 — bezig |
 | F4 | Centrale datalaag + dashboard (status/logs/fouten) | Overzicht over alles; lost K1+K3 volledig op | Na F3 |
 | F5 | Job A + Job B online aansturen vanuit platform | De grote tijdwinst, nu op schoon fundament | Na F4 |
 | F6 | Verhuizing naar eigen hosting + portal-schil | Infrastructuur-stap zónder directe productiviteitswinst; kan ná alle tools/jobs | Na F5 |
@@ -681,12 +676,21 @@ De eerste functie in de admin-portal is vervangen door een core-aanroep (postcod
 
 ## 10.3 F3 — inventarisatie (verkenningsfase, 3 juni 2026)
 
-F3 ("Intake + Upload als online modules op de core") is verkend vóór er code
-beweegt. Conclusie: F3 is geen één-tool-klus maar twee sporen van verschillende
-aard en risico.
+F3 ("Dossier voorbereiden + Upload als online modules op de core") is verkend vóór
+er code beweegt. Conclusie: F3 is geen één-tool-klus maar twee sporen van
+verschillende aard en risico.
+
+> **Voortgang (6 juni 2026):** Spoor A (**Dossier voorbereiden**, voorheen "Intake
+> Tool") is gestart — vorm gekozen: **route in de admin-portal** (F3.4), en het
+> eerste online-veilige increment (BAG + 3DBAG-hoogte + voorgevel-oriëntatie +
+> woningtype + prijs via `voorbereiden.py`) is gebouwd en gemerged (PR #13).
+> Resteert: VABI (F3.5), OneDrive-output (F3.3), bewijs-PDF via Playwright,
+> OneNote/To Do. **Spoor B (Upload) is afgesplitst** naar een eigen latere fase
+> (richting F6) — extern portaal + 2FA + credential + headless browser vragen een
+> aparte verkenning.
 
 **Twee tools, twee karakters:**
-- **Intake Tool** (~3.800 regels, Flask) is web-native: relatief tam om online te
+- **Dossier voorbereiden** (voorheen "Intake Tool", ~3.800 regels, Flask) is web-native: relatief tam om online te
   brengen. Schrijft nu bestanden rechtstreeks naar de Windows-OneDrive-map — dat
   moet om naar uploaden via core.graph_api. Bevat unieke IP (voorgevel-oriëntatie,
   3DBAG, VABI-.epa, bewijs-PDF) die nergens anders bestaat. Aandachtspunt: VABI
@@ -707,11 +711,11 @@ events, agenda_format.
 > De regel: **er gaat geen tool-code naar een Git-repo met een hardcoded secret
 > erin.** Eenmaal in de Git-historie krijg je een secret er nooit meer schoon
 > uit. Concreet valt dit zo uiteen:
-> - **BAG-sleutel (Intake, `data_api.py`):** verdwijnt automatisch in **F3.2** —
+> - **BAG-sleutel (Dossier voorbereiden, `data_api.py`):** verdwijnt automatisch in **F3.2** —
 >   daar vervangt de migratie de lokale BAG-logica door core.bag, dat al via een
 >   env-var werkt. Geen aparte sanering nodig.
 > - **Graph-auth (beide tools, `ms_graph.py`):** verdwijnt bij de
->   ms_graph → core.graph_auth-migratie — **F3.2** (Intake) en **F3.8** (Upload).
+>   ms_graph → core.graph_auth-migratie — **F3.2** (Dossier voorbereiden) en **F3.8** (Upload).
 >   Geen aparte sanering.
 > - **EnergielabelPortaal-wachtwoord (Upload, `config.py`):** zit NIET in de core
 >   (uniek aan de Uploadtool, er is geen portaal-API). Moet apart naar een
@@ -731,18 +735,18 @@ events, agenda_format.
 | --- | --- | --- |
 | F3.0 | gezamenlijk | Inventarisatie (deze sectie) — ✅ klaar |
 | F3.1 | gezamenlijk | **Veiligheidsregel (principe, geen losse stap):** geen secret in code die naar Git gaat. Naleving valt voor de BAG-sleutel en Graph-auth samen met de core-migratie (F3.2 / F3.8); alleen het EnergielabelPortaal-wachtwoord vergt een aparte env-var-actie (F3.6 / F3.8). Roteren van de secrets: handmatig door Kevin, los van de code-volgorde. |
-| F3.2 | A — Intake | Core-overlap wegstrangleren: eigen ms_graph → core.graph_auth/graph_api, bag → core.bag, prijs → core.prijs, logging → core.events |
-| F3.3 | A — Intake | Output ombouwen: van rechtstreeks naar de Windows-map schrijven naar uploaden via core.graph_api |
-| F3.4 | A — Intake | Online vorm geven (knop in admin-portal óf aparte Flask-service) + aanpak voor lange taken |
-| F3.5 | A — Intake | VABI-beslissing uitvoeren (lokaal/handmatig houden, meeleveren, of zonder VABI-installatie onderzoeken) |
+| F3.2 | A — Dossier voorbereiden | Core-overlap wegstrangleren: eigen ms_graph → core.graph_auth/graph_api, bag → core.bag, prijs → core.prijs, logging → core.events |
+| F3.3 | A — Dossier voorbereiden | Output ombouwen: van rechtstreeks naar de Windows-map schrijven naar uploaden via core.graph_api |
+| F3.4 | A — Dossier voorbereiden | Online vorm geven (knop in admin-portal óf aparte Flask-service) + aanpak voor lange taken |
+| F3.5 | A — Dossier voorbereiden | VABI-beslissing uitvoeren (lokaal/handmatig houden, meeleveren, of zonder VABI-installatie onderzoeken) |
 | F3.6 | B — Upload | GUI ontkoppelen: van Tkinter-venster naar een aanstuurbare service/CLI (kern blijft, schil eraf) |
 | F3.7 | B — Upload | Playwright op Railway bewijzen (proef met headless Chromium) — of besluiten dit naar F6 te schuiven |
 | F3.8 | B — Upload | Core-overlap wegstrangleren (idem ms_graph → core, bag, logging) |
 | F3.9 | B — Upload | Verificatie-per-categorie + parallelle uploads + foto-compressie online betrouwbaar; status naar core.events/dashboard |
 
 **Open beslispunten voor Kevin** (volledige opties + impact in het
-verkenningsrapport): secrets-volgorde, vorm van Intake (knop vs. aparte service),
-vorm/timing van Upload (Railway nu vs. F6 vervroegen), Intake-output, VABI online,
+verkenningsrapport): secrets-volgorde, vorm van Dossier voorbereiden (knop vs. aparte service — **gekozen: route in admin-portal**),
+vorm/timing van Upload (Railway nu vs. F6 vervroegen), Dossier-voorbereiden-output, VABI online,
 lange-taken-mechanisme, gedeelde vs. losse auth-tokens, stack-keuze (B2).
 
 Werkvolgorde: éérst F3.1 naleven, dán per spoor een eigen mini-plan — niet de
@@ -783,5 +787,6 @@ verkenning vóór er code beweegt.
 | 4.23 | 6 juni 2026 | **F2 Stap 6 (storage) afgerond en gemerged.** De bestand-IO (datamap-detectie + atomic JSON lezen/schrijven) in `storage.py` en `instellingen.py` vervangen door `core.storage` (`vind_data_dir` / `pad_voor` / `laad_json` / `bewaar_json`, tag v0.2.0). Lokaal behouden (nu op core eronder): de afspraken-CRUD en de settings-logica (defaults, diep-merge, validatie); het module-`_lock` blijft om de volledige lees-wijzig-schrijf-cyclus heen (core lockt alleen de schrijf zelf). Bestandsnamen (`afspraken.json` / `instellingen.json`) en atomiciteit gelijk; core checkt dezelfde volume-paden in dezelfde volgorde → op Railway blijft de data op `/app/data/<naam>` staan, zelfde pad, geen migratie. Round-trip-test `tests/test_storage_roundtrip.py` (CRUD + settings naar een tijdelijke datamap): 22/22 groen, geen regressie; geen env-var/secret nodig. Buiten scope: token-persist (`token_persist.json`) in `ms_graph.py` — komt bij de Graph-stap. Gemerged via PR #8. H0a bijgewerkt (Stap 6 ✅, volgende = grote swap `ms_graph` → `core.graph_auth`/`core.graph_api` incl. token-persist). **Notitie (Kevin, 6 juni):** makelaar komt nog steeds niet terug in de agenda-patch — admin-portal geeft `makelaar` nog niet door aan `core.agenda_format.opmaak_opname` (core ondersteunt het al sinds Stap 5); frictie #9 + consolidatie-aantekening bijgewerkt. Versie 4.22 → 4.23. |
 | 4.24 | 6 juni 2026 | **F2 afgerond (admin-portal volledig op de core) + nieuwe processectie.** Slotronde A/B/C: **A** — makelaar verschijnt nu in de Outlook-afspraak (frictie #9 opgelost, PR #9); **B** — nieuwe core-module `email_format` (klant- + admin-mailopmaak als pure functies) uitgebracht als **core-tag v0.3.0** (core PR #2), admin-portal-mails lopen nu via `core.email_format`, lokale `email_templates.py` verwijderd (PR #10); **C** — `ms_graph.py` is nu een dunne shim over `core.graph_auth` (token/persist/device-login) + `core.graph_api` (agenda + mail), server.py ongewijzigd (PR #11, handmatig gemerged na MS-env-vars + opnieuw inloggen vanwege de bredere core-scope). Netto: alle gedeelde logica van de admin-portal komt nu uit de core (postcode, prijs, bag, ep_online, agenda-opmaak, bestand-IO, mailopmaak, Graph). H0a + H6a bijgewerkt (F2 ✅, frictie #9 opgelost, frictie #10 wachtwoord-fix toegevoegd). Aantekeningen: bredere Graph-scope (least-privilege als latere core-keuze), secret-rotatie BAG+EP nog open (H8.3), account-note onder H1a (wachtwoord-fix voorbereiden op meerdere accounts). **Nieuwe sectie H5a — Het bedrijfsproces (dossier-levenscyclus):** de ruggengraat met principe 1 (één keer invoeren, overal hergebruiken — K1 als harde regel), principe 2 (flexibele data-gestuurde levenscyclus), de ~13 basisstappen (energielabel), productvarianten (maatwerk-particulier, VvE-maatwerk), de dashboard-weergave en verankering naar H6/H7/H9.5/H6a/events. Versie 4.23 → 4.24. |
 | 4.25 | 6 juni 2026 | **Frictie #10 opgelost — wachtwoord wijzigen werkt.** Diagnose: er was geen wijzig-functie; het wachtwoord ís de env-var `ADMIN_PASSWORD` (platte tekst), niet runtime te wijzigen. Fix (PR #12, door Kevin getest + gemerged): nieuwe lokale module `accounts.py` met gehashte wachtwoorden (stdlib pbkdf2-sha256, random salt, 240k iteraties) persistent op de Railway-volume via `core.storage` (`accounts.json`); store = dict gebruiker→hash (multi-account-klaar, vandaag één `admin`). Geen lockout/geen verzonnen wachtwoord: bij lege store wordt eenmalig geseed uit de bestaande `ADMIN_PASSWORD`, daarna is `accounts.json` leidend (env-seed vervalt na een wijziging). `server.py`: login via `accounts.verifieer`, endpoint `POST /api/wachtwoord`, opstart-vereiste versoepeld naar "store óf seed"; UI-sectie op de instellingen-pagina; runtime-data in `.gitignore`. Test `tests/test_accounts.py` (hash round-trip, bootstrap, wijzigen, store-leidend, validatie, geen platte tekst). H6a frictie #10 ✅, H1a account-note bijgewerkt. Volgende stap: secret-rotatie (BAG+EP, H8.3) en de bredere platformfases (F3 e.v.). Versie 4.24 → 4.25. |
+| 4.26 | 6 juni 2026 | **F3 gestart — "Dossier voorbereiden" (eerste online-increment) + hernoeming.** De oude "Intake Tool" heet voortaan **"Dossier voorbereiden"** (overal bijgewerkt: H7.2-modulenaam, H10/H10.3, bouwstenen-tabel, H8; historische versiehistorie-regels ongemoeid). Vorm-beslissing (F3.4): **route in de admin-portal** i.p.v. een aparte service. Eerste online-veilige increment gebouwd + gemerged (admin-portal **PR #13**): nieuwe module `voorbereiden.py` (geport uit de leesbron `data_api.py`) levert 3DBAG-gebouwhoogte, voorgevel-oriëntatie (PDOK/OSM + RD-trig, verbatim), woningtype-classificatie en bouwjaar-klasse; route `/voorbereiden` + `GET /api/voorbereiden` halen alles op via core.bag + core.prijs. Additief, geen nieuwe dependency, raakt het aanmeldformulier niet; smoke-test `tests/test_voorbereiden.py` + alle suites groen. **Bewust niet meegenomen (open beslispunten/onbewezen infra):** VABI .epa (lokale templates → F3.5), dossier-output naar OneDrive (F3.3), bewijs-PDF via Playwright, OneNote/To Do. **Upload-spoor afgesplitst** naar een latere fase (richting F6: extern portaal + 2FA + credential + headless browser). H0a/H7.2/H10.3 bijgewerkt; consolidatie-aantekening met de open F3-beslispunten toegevoegd. Versie 4.25 → 4.26. |
 
 *— Einde document —*
