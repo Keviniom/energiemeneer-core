@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "energiemeneer-core"
-version = "0.3.0"
+version = "0.4.0"
 description = "Gedeelde Python-library voor het Energiemeneer energielabel-platform"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -25,6 +25,13 @@ dev = ["pytest>=7"]
 
 [tool.setuptools.packages.find]
 include = ["energiemeneer_core*"]
+
+# De VABI-objectenbibliotheek-templates (per woningtype + bouwjaar-categorie)
+# reizen mee als package-data, zodat consumers (zoals admin-portal op Railway)
+# ze kunnen lezen via energiemeneer_core.objectbib. De nta8800.exe hoort hier
+# NIET bij (licentie-software + zware binary).
+[tool.setuptools.package-data]
+energiemeneer_core = ["objectbibliotheken/**/*.xml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,600 @@
+<Project Index="-1">
+	<Guid>0d856f77-d8be-4dad-bb99-b9e00c798b40</Guid>
+	<Hidden>0</Hidden>
+	<CreatedBy>-1</CreatedBy>
+	<ApplicationVersion>11.1</ApplicationVersion>
+	<XmlVersie>110101003</XmlVersie>
+	<FullApplicationVersion>11.1.1</FullApplicationVersion>
+	<CalculationKernelVersion>1.5</CalculationKernelVersion>
+	<CalculationKernelVersionMwa>2.1</CalculationKernelVersionMwa>
+	<LatestXmlUpgrade>110100032</LatestXmlUpgrade>
+	<Backup>0</Backup>
+	<FileName />
+	<IsEmpty>0</IsEmpty>
+	<IsVoorbeeldproject>0</IsVoorbeeldproject>
+	<IsBasisVoorraadPrimairSysteem>0</IsBasisVoorraadPrimairSysteem>
+	<OriginalVoorbeeldprojectFile />
+	<Algemeen Index="-1">
+		<Guid>40199cdf-e7cd-472d-a904-05a194b0bff3</Guid>
+		<Projectgegevens Index="-1">
+			<Guid>59129280-195c-42cd-9a69-7c0177cce1f2</Guid>
+			<Objecttype>-1</Objecttype>
+			<Bouwfase>-1</Bouwfase>
+			<Opname>-1</Opname>
+			<UWaardeRaamMetOmtrekEnOppervlakte>0</UWaardeRaamMetOmtrekEnOppervlakte>
+			<Naam />
+			<ProjectNr />
+			<OpnameDatum />
+			<RapportDatum />
+			<Omschrijving />
+			<IsMaatwerk>0</IsMaatwerk>
+			<IsGroepen>1</IsGroepen>
+			<IsComplexMaatwerk>0</IsComplexMaatwerk>
+			<IsMeenemenInSync>1</IsMeenemenInSync>
+			<MeenemenInRegistratiemomenten>1</MeenemenInRegistratiemomenten>
+			<ToonDeelvoorraad>1</ToonDeelvoorraad>
+			<UpdateMetConnectorNaam>1</UpdateMetConnectorNaam>
+			<UpdateMetConnectorPostcode>1</UpdateMetConnectorPostcode>
+			<UpdateMetConnectorHuisnummer>1</UpdateMetConnectorHuisnummer>
+			<UpdateMetConnectorHuisletterHuisnummertoevoeging>1</UpdateMetConnectorHuisletterHuisnummertoevoeging>
+			<UpdateMetConnectorDetailaanduiding>1</UpdateMetConnectorDetailaanduiding>
+			<UpdateMetConnectorStraat>1</UpdateMetConnectorStraat>
+			<UpdateMetConnectorPlaats>1</UpdateMetConnectorPlaats>
+			<UpdateMetConnectorGemeente>1</UpdateMetConnectorGemeente>
+			<UpdateMetConnectorWijk>1</UpdateMetConnectorWijk>
+			<UpdateMetConnectorBuurt>1</UpdateMetConnectorBuurt>
+			<UpdateMetConnectorVestiging>1</UpdateMetConnectorVestiging>
+			<UpdateMetConnectorEenheid>1</UpdateMetConnectorEenheid>
+			<UpdateMetConnectorBouwjaar>1</UpdateMetConnectorBouwjaar>
+			<UpdateMetConnectorRenovatiejaar>1</UpdateMetConnectorRenovatiejaar>
+			<UpdateMetConnectorComplex>1</UpdateMetConnectorComplex>
+			<UpdateMetConnectorTechnischComplex>0</UpdateMetConnectorTechnischComplex>
+			<UpdateMetConnectorFinancieelComplex>0</UpdateMetConnectorFinancieelComplex>
+		</Projectgegevens>
+		<Opdrachtgever Index="-1">
+			<Guid>d97a51b5-bd37-4014-80d1-7b25591a349a</Guid>
+			<Bedrijf />
+			<Persoon />
+			<Afdeling />
+			<Straat />
+			<Nummer>0</Nummer>
+			<Extensie />
+			<Postcode />
+			<Plaats />
+			<Telefoon />
+			<Email />
+		</Opdrachtgever>
+		<Adviseur Index="-1">
+			<Guid>ee1612a1-6986-4a01-87a1-ef8e9447cece</Guid>
+			<Bedrijf />
+			<Adviseur />
+			<Adres />
+			<Postcode />
+			<Plaats />
+			<Telefoon />
+			<Email />
+		</Adviseur>
+		<Financieel Index="-1">
+			<Guid>5dbcd43c-c4f3-48e2-9de6-93c765679be3</Guid>
+			<Elektriciteit Index="-1">
+				<Guid>aaf7155b-0a44-4ac7-965c-d69782d954f1</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Elektriciteit>
+			<TerugleveringTotGrens Index="-1">
+				<Guid>cacd6757-8e10-49db-a95e-ed022a464c4b</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</TerugleveringTotGrens>
+			<TerugleveringBovenGrens Index="-1">
+				<Guid>122be7db-696b-47d6-8a8c-3f99f988bc25</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</TerugleveringBovenGrens>
+			<Salderingspercentage>0</Salderingspercentage>
+			<HeeftSlimmeMeter>0</HeeftSlimmeMeter>
+			<Opbrengstpercentage>0</Opbrengstpercentage>
+			<Gas Index="-1">
+				<Guid>0eeb1b84-2190-4f5a-92a5-7186b5820db3</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Gas>
+			<Warmtenet Index="-1">
+				<Guid>d56d89f9-0a3d-4dd2-9185-e916c07388d2</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Warmtenet>
+			<Koudenet Index="-1">
+				<Guid>881b5a6c-ce7b-4d98-8221-63bacaf4e2ae</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Koudenet>
+			<Biomassa Index="-1">
+				<Guid>3b834cfa-fbc9-465c-86c9-9c397c71cb0b</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Biomassa>
+			<Stookolie Index="-1">
+				<Guid>c565839a-dbe1-4ee1-a514-72a76995fe29</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Stookolie>
+			<Water Index="-1">
+				<Guid>ca366ebf-a80a-49e7-960a-e2c999396850</Guid>
+				<Type>-1</Type>
+				<Eenheid>-1</Eenheid>
+				<PrijsPerEenheid>0.00</PrijsPerEenheid>
+				<Vastrecht>0.00</Vastrecht>
+				<HeeftPrijsplafond>0</HeeftPrijsplafond>
+				<GrensPrijsplafond>0.00</GrensPrijsplafond>
+				<PrijsBovenPlafond>0.00</PrijsBovenPlafond>
+			</Water>
+			<VerminderingEnergiebelasting>0.00</VerminderingEnergiebelasting>
+			<InclBtw>1</InclBtw>
+			<Levensduur>0</Levensduur>
+			<RenteInvestering>0.00</RenteInvestering>
+			<ToenameEnergie>0.00</ToenameEnergie>
+		</Financieel>
+	</Algemeen>
+	<Installaties Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Installaties>
+	<Constructies Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+		<Constructie Index="0">
+			<Guid>a7323ecf-6ec9-4e42-8039-aed66abe1287</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Paneel in kozijn isolatie onbekend (zonder spouw, Hout of kunststof)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>1</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>3</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>-1</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="1">
+			<Guid>8175799f-2349-4166-bb4c-369d4b5d3368</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Raam Enkel glas (Hout of kunststof, U = 5.10, g = 0.85)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>2</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>-1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>0</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="2">
+			<Guid>dabc40af-d461-41a1-ae64-2bc2ab6d6b73</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Raam Dubbel glas (Hout of kunststof, U = 2.90, g = 0.75)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>2</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>-1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>2</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="3">
+			<Guid>2552ba33-82ec-42c5-82af-5e94a6afafb9</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Raam HR glas (dubbel glas met coating, Hout of kunststof, U = 2.30, g = 0.60)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>2</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>-1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>3</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="4">
+			<Guid>fdb973e8-97ec-4923-b1b1-b8e9f6252c2c</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Raam HR+ glas (Hout of kunststof, U = 2.00, g = 0.60)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>2</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>-1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>4</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="5">
+			<Guid>7d99b8d5-cb6c-459f-a64e-719e56e900c5</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Raam HR++ glas (Hout of kunststof, U = 1.80, g = 0.60)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>2</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>-1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>5</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="6">
+			<Guid>b906450f-27e9-401e-8f10-ad5a47466277</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Raam TripleHR glas (Hout of kunststof, U = 1.40, g = 0.50)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>2</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>-1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>0</Kozijn>
+			<Glas>6</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+		<Constructie Index="7">
+			<Guid>c68955ba-3c02-43cd-9cf8-8bd134a9329d</Guid>
+			<Hidden>0</Hidden>
+			<Blocked>0</Blocked>
+			<Naam>Deur ongeïsoleerd (U = 3.40)</Naam>
+			<AutoNaam>1</AutoNaam>
+			<ConstructieType>3</ConstructieType>
+			<DeurMetRaamGlas65Procent>0</DeurMetRaamGlas65Procent>
+			<RietenDak>0</RietenDak>
+			<Invoer>6</Invoer>
+			<KwaliteitsverklaringInvoermethode>0</KwaliteitsverklaringInvoermethode>
+			<GMinimaleEisenBouwbesluit2012>0.00</GMinimaleEisenBouwbesluit2012>
+			<OppervlaktePerConstructie>0</OppervlaktePerConstructie>
+			<Oppervlakte>0.00</Oppervlakte>
+			<Arc>0.00</Arc>
+			<Merk />
+			<Type />
+			<Code />
+			<RcKwaliteitsverklaring>0.00</RcKwaliteitsverklaring>
+			<UKwaliteitsverklaring>0.00</UKwaliteitsverklaring>
+			<GKwaliteitsverklaring>0.00</GKwaliteitsverklaring>
+			<KwaliteitsverklaringId>00000000-0000-0000-0000-000000000000</KwaliteitsverklaringId>
+			<KwaliteitsverklaringKozijn />
+			<KwaliteitsverklaringGlas />
+			<KwaliteitsverklaringAfstandhouder />
+			<KwaliteitsverklaringType />
+			<KwaliteitsverklaringIsolatieDikte />
+			<UKozijn>0.00</UKozijn>
+			<UGlas>0.00</UGlas>
+			<PsiGlas>0.000</PsiGlas>
+			<OmtrekBeglazing>0.00</OmtrekBeglazing>
+			<PsiGlasroede>0.000</PsiGlasroede>
+			<Glasroedelengte>0.00</Glasroedelengte>
+			<OppervlakteBeglazing>0.00</OppervlakteBeglazing>
+			<OppervlakteKozijn>0.00</OppervlakteKozijn>
+			<RcInvoer>0.00</RcInvoer>
+			<UInvoer>0.00</UInvoer>
+			<GInvoer>0.00</GInvoer>
+			<IsolatieAanwezig>1</IsolatieAanwezig>
+			<Rietdikte>-1</Rietdikte>
+			<IsolatiedikteOnbekend>0</IsolatiedikteOnbekend>
+			<Isolatiedikte>0</Isolatiedikte>
+			<Bouwjaar>-1</Bouwjaar>
+			<SpouwAanwezig>0</SpouwAanwezig>
+			<Kozijn>-1</Kozijn>
+			<Glas>-1</Glas>
+			<ProductinformatieGWaarde>0</ProductinformatieGWaarde>
+			<Bron>1</Bron>
+			<Opmerkingen />
+		</Constructie>
+	</Constructies>
+	<Maatregelen Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Maatregelen>
+	<VrijeVeldenDefinities Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</VrijeVeldenDefinities>
+	<Registratiemomenten Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Registratiemomenten>
+	<Objecten Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Objecten>
+	<Energieplannen Index="-1">
+		<Guid>00000000-0000-0000-0000-000000000000</Guid>
+	</Energieplannen>
+</Project>
