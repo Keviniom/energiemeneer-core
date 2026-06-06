@@ -118,3 +118,6 @@ dmypy.json
 
 # Claude Code lokale sessiemap
 .claude/
+
+# VABI-bron met licentie-exe — niet in git; templates leven als package-data in energiemeneer_core/objectbibliotheken/
+/Objectbibliotheken/
