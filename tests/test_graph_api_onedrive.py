@@ -186,3 +186,22 @@ def test_upload_groot_sessie_fout(monkeypatch, tmp_path):
     _vang_request(monkeypatch, lambda *a: _resp(status=500, text="nee"))
     with pytest.raises(RuntimeError, match="Upload-sessie aanvragen mislukt"):
         onedrive.upload_bestand(str(bestand), "Map/groot.bin")
+
+
+# ── web_url ─────────────────────────────────────────────────────────────────────
+
+
+def test_web_url_gevonden(monkeypatch):
+    def responder(method, url, json, data):
+        return _resp(status=200, json_data={"webUrl": "https://onedrive/x/Straat 8"})
+    _vang_request(monkeypatch, responder)
+    assert onedrive.web_url("1. Werkmap/Energielabels/Straat 8") == "https://onedrive/x/Straat 8"
+
+
+def test_web_url_niet_gevonden_geeft_leeg(monkeypatch):
+    _vang_request(monkeypatch, lambda *a: _resp(status=404))
+    assert onedrive.web_url("bestaat/niet") == ""
+
+
+def test_web_url_leeg_pad(monkeypatch):
+    assert onedrive.web_url("") == ""

@@ -78,6 +78,26 @@ def maak_map(pad: str) -> dict[str, Any]:
     return {"pad": uiteindelijk, "mapnaam": naam}
 
 
+def web_url(pad: str) -> str:
+    """Geef de OneDrive-web-URL (browser-link) van een map of bestand.
+
+    Args:
+        pad: volledig pad t.o.v. de OneDrive-root.
+
+    Returns:
+        De ``webUrl`` van het item, of ``""`` als het niet gevonden wordt
+        (bijv. nog niet aangemaakt) — bewust geen fout, zodat een dashboard-link
+        gewoon kan ontbreken.
+    """
+    p = (pad or "").strip("/")
+    if not p:
+        return ""
+    resp = _client.get(f"/me/drive/root:/{p}")
+    if resp.status_code == 200:
+        return resp.json().get("webUrl", "") or ""
+    return ""
+
+
 def upload_bestand(lokaal_pad: str, onedrive_pad: str) -> dict[str, Any]:
     """Upload een lokaal bestand naar OneDrive.
 
