@@ -42,10 +42,10 @@ def _vang_request(monkeypatch, *responses):
 
 def test_haal_agenda_op_geeft_alle_velden_en_geen_filter(monkeypatch):
     resp = _resp(json_data={"value": [
-        {"subject": "Opname A", "start": {"dateTime": "2026-06-01T08:00:00.0000000"},
+        {"id": "EV-A", "subject": "Opname A", "start": {"dateTime": "2026-06-01T08:00:00.0000000"},
          "end": {"dateTime": "2026-06-01T09:30:00.0000000"}, "isAllDay": False,
-         "showAs": "busy"},
-        {"subject": "Vrij blok", "start": {"dateTime": "2026-06-01T12:00:00Z"},
+         "showAs": "busy", "location": {"displayName": "Graskopstraat 8, 2512EX Den Haag"}},
+        {"id": "EV-B", "subject": "Vrij blok", "start": {"dateTime": "2026-06-01T12:00:00Z"},
          "end": {"dateTime": "2026-06-01T13:00:00Z"}, "isAllDay": False,
          "showAs": "free"},
     ]})
@@ -60,9 +60,14 @@ def test_haal_agenda_op_geeft_alle_velden_en_geen_filter(monkeypatch):
     assert afspraken[0]["start"] == "2026-06-01T08:00:00.000Z"
     assert afspraken[1]["start"] == "2026-06-01T12:00:00Z"
     assert afspraken[0]["onderwerp"] == "Opname A"
+    # id + locatie komen mee (locatie = adres bij opname-afspraken).
+    assert afspraken[0]["id"] == "EV-A"
+    assert afspraken[0]["locatie"] == "Graskopstraat 8, 2512EX Den Haag"
+    assert afspraken[1]["locatie"] == ""   # geen location → leeg, geen fout
     # UTC wordt afgedwongen via de Prefer-header.
     assert calls[0]["headers"]["Prefer"] == 'outlook.timezone="UTC"'
     assert calls[0]["params"]["startDateTime"] == "2026-06-01T00:00:00"
+    assert "location" in calls[0]["params"]["$select"]
 
 
 def test_haal_agenda_op_eist_periode():
