@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Versie** | 4.33 |
+| **Versie** | 4.34 |
 | **Laatst bijgewerkt** | 7 juni 2026 |
 | **Auteur** | Kevin Valkenhoff |
 | **Bestandsnaam** | Meesterbrein.md *(vaste naam — verandert nooit)* |
@@ -341,9 +341,11 @@ Eén Python-package die alle herbruikbare businesslogica bevat. Vandaag staat de
 
 Één plek waar alle dossiers, afspraken, statussen en events leven. Dit is de evolutie van de eerder ontworpen Centrale Klant-Index, nu als platform-datalaag in plaats van losse index. Sleutel: BAG VBO-ID (uniek in heel Nederland, stabiel tussen alle modules).
 
+✅ **Eerste versie gebouwd (F4, admin-portal PR #24):** twee stores via core.storage — **`klanten.json`** (klantregister) en **`dossiers.json`** (de dossiers). Het dossier is de kern-entiteit; de agenda voedt de store (koppelt opnames). Zie H9.5 voor het volledige datamodel.
+
 Drie kerntabellen:
 
-- **dossiers** — één rij per dossier (VBO-ID), met klant, adres, makelaar, status, paden en koppelingen.
+- **dossiers** — één rij per dossier (sleutel `dossier_id`; VBO-ID/adres-sleutel als index), met **klant-koppeling**, adres, fase (1–13), hangt_op, paden en de gekoppelde agenda-afspraak + mijlpalen. ✅ Gebouwd in F4.
 
 - **events** — append-only logboek: elke statuswijziging met tijd, module en resultaat. Voedt het dashboard. *(Gebouwd in core-module 8. Vast event-formaat: `id`, `tijd` (UTC), `module`, `actie`, `resultaat` ∈ {gelukt, mislukt, in_uitvoering}, `niveau` ∈ {info, waarschuwing, kritiek}, `vbo_id`, `bericht`, `details`. `resultaat` en `niveau` zijn strikt — andere waarden geven een fout — zodat het dashboard betrouwbaar kan filteren en kleuren. Opslag nu als JSONL bovenop storage, achter één interne functie zodat B1 (SQLite/PostgreSQL) later in te schuiven is.)*
 
@@ -427,7 +429,7 @@ Eén proces, varianten erbovenop. Elk dossier draagt een **producttype** dat zij
 
 *(Eerste versie gebouwd in F3, PR #17; levenscyclus-fases toegevoegd in PR #23 — zie H6.)*
 
-- **Pijplijn-bord:** de aankomende opnames met hun dossier-status én hun **levenscyclus-fase** (de stappen uit §5a.3). ✅ **Gebouwd (PR #23):** elk dossier toont een fase-kolom. Wat we kunnen weten wordt **automatisch** afgeleid (te voorbereiden → stap 4, voorbereid → stap 5, afschrift binnen → stap 9); de overige stappen (opname, VABI, BRL, upload, …) hebben nog geen databron en zet Kevin **handmatig** een stap verder via een dropdown per dossier (persistent via core.storage). **Precedentie:** de getoonde fase = de verst gevorderde van (auto, handmatig) — auto duwt alleen vooruit, een handmatig gezette fase wordt nooit teruggezet. De kolommen adres / opname-datum / fase zijn **sorteerbaar**. (De volledige kanban per producttype is nog een verfijning.)
+- **Pijplijn-bord:** alle **dossiers** met hun **levenscyclus-fase** (de stappen uit §5a.3). ✅ **Gebouwd (PR #23) + uitgebreid naar de dossier-datalaag (F4, PR #24):** het dashboard leest sinds F4 de **dossier-store** (alle dossiers, fases **1–13**), niet meer puur de live agenda — de agenda-sync voedt de store. Elk dossier toont een fase-kolom + de **klant**. Wat we kunnen weten wordt **automatisch** afgeleid (lead → stap 1, opname → stap 4, voorbereid → stap 5, afschrift binnen → stap 9); de overige stappen zet Kevin **handmatig** vooruit via een dropdown per dossier (persistent op het dossier). **Fase = status:** de korte status (badge/tegels) volgt uit de fase + vlaggen (mislukt/verschoven/afschrift) — niet meer tegenstrijdig. **Precedentie:** de fase = `max(auto, handmatig)`. De kolommen adres / klant / opname / fase zijn **sorteerbaar**. Een dossier kan **handmatig** worden aangemaakt ("Nieuwe klant + dossier") of automatisch uit de agenda ontstaan. (De volledige kanban per producttype is nog een verfijning.)
 - **"Hangt op"-overzicht:** welke dossiers wachten en op wie (klant / extern / Kevin / automatisch) — afgeleid van de **wacht-op van de huidige levenscyclus-fase** (principe 2), of handmatig overschreven. ✅ Sinds PR #23 komt de default uit de fase (bv. een te-voorbereiden dossier wacht op de *automatische voorbereiding*, niet op Kevin).
 - **Technische gezondheid:** API-status (BAG / EP / Graph-token / secret-verloop), mislukte mails, mislukte jobs — met tijd + oorzaak; opgeloste fouten verdwijnen vanzelf.
 - **Dossier-detail:** alle gegevens + documenten + event-historie op één plek.
@@ -450,7 +452,9 @@ Het dashboard is het zenuwcentrum dat Kevin in één oogopslag laat zien hoe het
 >
 > **✅ Verfijnd (F3, PR #18/#19/#20):** (a) **OneDrive-deeplinks** — bij het aanmaken wordt de `webUrl` van de dossiermap vastgelegd (core.graph_api.onedrive `web_url`, **core v0.5.0**) en als klikbare link in het dossier-detail getoond; (b) **filters + tellingen** — klikbare tegels (open / voorbereid / mislukt / verschoven) bovenaan de pijplijn; (c) **ververs-knop + lichte auto-refresh** (elke 60s aan/uit) zodat het dashboard geen momentopname is; (d) **technische gezondheid opgeschoond** — alleen nog **openstaande** fouten (een bron die later alsnog lukte verdwijnt automatisch); (e) **synchronisatie-samenvatting** — kaart met "X voorbereid, Y mislukt" uit de laatste synchronisatie (events).
 >
-> **✅ Levenscyclus-fases (PR #23):** de pijplijn toont nu per dossier een **fase-kolom** met de levenscyclus-stappen uit H5a (§5a.3, stap 4–13). Auto-detectie van de bekende mijlpalen (te voorbereiden / voorbereid / afschrift binnen) + **handmatige voortgang** via een dropdown per dossier (persistent via core.storage), met precedentie `max(auto, handmatig)`. De kolommen **adres / opname / fase** zijn **sorteerbaar**. Twee fixes meegenomen: robuustere adres-parsing uit de agenda-locatie (met nette placeholder als parsen niet lukt) en een zinnige, fase-afgeleide "hangt op". **Nog te verfijnen:** het volledige kanban-bord per producttype + status-events per stap.
+> **✅ Centrale dossier-datalaag (F4, PR #24):** het dashboard leest nu de **dossier-store** (`dossiers.json` + klantregister `klanten.json`), niet meer puur de live agenda — de agenda-sync voedt de store. De **klant** staat per regel; er is een knop **"Nieuwe klant + dossier"** en een **klantregister-overzicht**. **Fase = status:** de status volgt uit de fase + vlaggen (geen tegenstrijdigheid meer). De fases lopen nu **1–13** (een lead bestaat al vóór de opname). Bestaande registries netjes gemigreerd (niets kwijt). Zie H9.5.
+>
+> **✅ Levenscyclus-fases (PR #23):** de pijplijn toont per dossier een **fase-kolom** met de levenscyclus-stappen uit H5a (§5a.3). Auto-detectie van de bekende mijlpalen (te voorbereiden / voorbereid / afschrift binnen) + **handmatige voortgang** via een dropdown per dossier (persistent via core.storage), met precedentie `max(auto, handmatig)`. De kolommen **adres / opname / fase** zijn **sorteerbaar**. Twee fixes meegenomen: robuustere adres-parsing uit de agenda-locatie (met nette placeholder als parsen niet lukt) en een zinnige, fase-afgeleide "hangt op". **Nog te verfijnen:** het volledige kanban-bord per producttype + status-events per stap.
 
 ## 6.1 Wat het dashboard toont
 
@@ -629,20 +633,52 @@ Pad: OneDrive – De Energiemeneer → 1. Werkmap → 1. Energielabels
 | 3. Klaar om te uploaden | Dossiers gereed voor EnergielabelPortaal |
 | [Adres-map] | Bijv. ‘Graskopstraat 8, ’s-Gravenhage’ (BRL dossiereis) |
 
-## 9.5 Datamodel — kernvelden dossiers
+## 9.5 Datamodel — Klant + Dossier als kern-entiteiten
 
-Sleutel = VBO-ID. Elk veld heeft één eigenaar-module (write authority) om conflicten te voorkomen. Volledige kolomspecificatie wordt onderhouden in een apart datamodel-bestand; hieronder de kern.
+✅ **Gebouwd in F4 (admin-portal PR #24).** De datalaag bestaat uit twee
+persistente stores via `core.storage` (`klanten.json` + `dossiers.json`). Het
+**dossier** is de kern-entiteit (niet meer de agenda); een **klant** kan meerdere
+dossiers hebben. Primaire sleutel van een dossier = een interne `dossier_id`
+(een **lead** bestaat al vóór er een VBO-ID is); VBO-ID, de genormaliseerde
+**adres-sleutel** en het agenda-event-id zijn match-/dedup-indexen. *(Opslag nu
+als JSON via core.storage achter één laag, zodat B1 — SQLite/PostgreSQL — later
+in te schuiven is.)*
+
+**Klant** (`klanten.py`) — velden één-op-één uit het aanmeldformulier, zodat
+SnelStart later een plug-in is (principe 1):
 
 | **Veldgroep** | **Velden** | **Eigenaar (write)** |
 | --- | --- | --- |
-| Klant | naam, e-mail, telefoon, makelaar, zakelijk/KvK/BTW | Instroom |
-| Adres/BAG | straat, huisnr, postcode, woonplaats, VBO-ID, pand-ID, bouwjaar, opp | Instroom + Voorbereiding |
-| Opname | datum, tijd, agenda-event-id, prijscategorie, bron | Instroom |
-| Dossier | map-pad, onenote-url, todo-id, todo-status, **dossier_voorbereid** (tijd), **hangt_op**, **toegewezen adviseur** | Voorbereiding |
-| Portaal | portaal-guid, upload-status, upload-datum, archiefstatus | Upload |
-| Afsluiting | EP-Online nr, factuurnummer | Handmatig / koppeling |
+| Klant-kern | voornaam, achternaam, e-mail, telefoon | Instroom / handmatig |
+| Type + facturatie | `factuur_type` (particulier/zakelijk), `bedrijf` (naam, straat, huisnr, toevoeging, postcode, plaats, **KvK**, **BTW** = factuuradres) | Instroom / handmatig |
+| Relatie | makelaar (naam, indien doorverwezen), opmerkingen | Instroom / handmatig |
 
-> **F3-toevoegingen (PR #16/#17):** het dossier draagt nu **`dossier_voorbereid`** (tijdstip van de automatische/handmatige voorbereiding — bron voor de re-prep-detectie via de voorbereid-registry op VBO-ID), **`hangt_op`** (waar het dossier op wacht — afgeleid van de levenscyclus-stap (H5a, principe 2: "wacht-op") of handmatig gezet op het dashboard) en **`toegewezen adviseur`** (default = ingelogde gebruiker; basis voor latere multi-user-routing/filtering).
+**Dossier** (`dossiers.py`):
+
+| **Veldgroep** | **Velden** | **Eigenaar (write)** |
+| --- | --- | --- |
+| Identiteit | `dossier_id`, `klant_id` (→ klant), `adres_sleutel`, bron | Datalaag |
+| Adres/BAG | straat, huisnr, huisletter, toevoeging, postcode, woonplaats, VBO-ID, pand-ID, bouwjaar, opp | Instroom + Voorbereiding |
+| Opname | gekoppelde agenda-afspraak (`event_id`, start, eind, bron) | Agenda-sync |
+| Levenscyclus | **fase** (1–13, H5a) = handmatige voortgang + auto-mijlpalen; **hangt_op**; **toegewezen adviseur** | Dashboard / auto |
+| Dossier | map-pad (OneDrive), dossier-url, **voorbereid**-mijlpaal (tijd/mapnaam/start), `laatste_prep_resultaat` | Voorbereiding |
+| Afsluiting | **afschrift**-mijlpaal (EP-Online: bestand/registratienr), portaal-/factuurvelden (later) | Upload / handmatig |
+
+**Hoe een dossier ontstaat (twee wegen, geen dubbelen):** (1) **handmatig** via
+"Nieuwe klant + dossier" (start default op fase 1 = lead); (2) **automatisch** via
+de agenda-sync, die elke opname op **adres-sleutel/event-id** aan een bestaand
+dossier koppelt (de lead die een afspraak werd) of een nieuw dossier op fase 4
+maakt. De voorbereiding en de afschrift-filer **spiegelen** hun mijlpaal naar het
+dossier.
+
+**Fase = status:** de korte status (badge/tegels) wordt uit de fase + de vlaggen
+(mislukt / verschoven / afschrift) afgeleid — nooit meer tegenstrijdig. Precedentie
+van de fase = `max(auto-mijlpaal, handmatig gezet)`.
+
+> **Migratie (F4, eenmalig + idempotent):** de bestaande registries
+> (`afspraken.json`, `voorbereid.json`, `afschriften.json`, `dossier_voortgang.json`)
+> zijn netjes naar de dossier-store overgenomen — niets kwijt. De oude registries
+> blijven als idempotentie-cache voor de prep-/upload-modules.
 
 # 10. Roadmap — fundament eerst, dan platform, dan modules
 
@@ -656,7 +692,7 @@ Deze volgorde wijkt bewust af van de oude roadmap (waar de Klant-Index P2 was en
 | F1 | energiemeneer-core extraheren (storage, auth, graph, bag, ep, prijs, agenda) | Fundament; maakt al het andere goedkoper; lost K2+K4 op | ✅ Klaar (Modules 1–8, 159/159 tests) |
 | F2 | Fusie Aanmeldformulier + Admin Portal op de core | Één instroom-backend, één login, één token; lost K3 deels op | 🔧 Mee bezig (F2.0 klaar, zie H10.2) |
 | F3 | Dossier voorbereiden online op de core (Upload-spoor afgesplitst naar een latere fase) | Tools op de core; directe productiviteitswinst voor het hoofddoel | Na F2 — bezig |
-| F4 | Centrale datalaag + dashboard (status/logs/fouten) | Overzicht over alles; lost K1+K3 volledig op | Na F3 |
+| F4 | Centrale datalaag + dashboard (status/logs/fouten) | Overzicht over alles; lost K1+K3 volledig op | 🔧 **Datalaag gebouwd (PR #24)** — dossier + klant als kern-entiteiten; dashboard leest de dossier-store. Resteert: per-tenant scheiding (H1a) + B1-opslagkeuze. |
 | F5 | Automatische dossiervoorbereiding + upload online aansturen vanuit platform | De grote tijdwinst, nu op schoon fundament | Na F4 |
 | F6 | Verhuizing naar eigen hosting + portal-schil | Infrastructuur-stap zónder directe productiviteitswinst; kan ná alle tools/jobs | Na F5 |
 | F7 | VvE-module met web-UI + advies-trajecten | Verbreding naar VvE/advies; volgende omzetstroom | Later |
@@ -826,5 +862,7 @@ verkenning vóór er code beweegt.
 | 4.32 | 8 juni 2026 | **Drie fixes in "Dossier voorbereiden" + werknamen Job A/B geretired (admin-portal PR #22, core tag v0.7.0).** **FIX 3 (belangrijkste) — overzicht/synchronisatie vond 0 opnames:** oorzaak was dat de dossiervoorbereiding (dashboard + scan) de **lokale `afspraken.json`** las (alléén admin-portal-boekingen) i.p.v. de **live Outlook-agenda**; opnames via het aanmeldformulier/Calendly of handmatig werden zo nooit gezien. Nu leest **alles via de core**: nieuwe core-velden `locatie`+`id` op `agenda.haal_agenda_op` (**v0.7.0**), en een nieuwe admin-module **`agenda_sync.lees_opnames`** haalt de opnames uit de live agenda, herkent ze aan het vaste core-onderwerp ("Energielabel opname") en haalt het adres uit de **locatie**; verrijkt waar mogelijk uit `afspraken.json` (klant/vbo) en — voor het voorbereiden — via `core.bag`. Het dashboard én de synchronisatie gebruiken deze bron; de voorbereid-registry kreeg een `adres_sleutel` zodat een opname zonder vbo_id tóch aan z'n dossier koppelt; detail-drilldown en de handmatige "Voorbereiden"-knop vinden agenda-opnames ook. **FIX 1 — adres-zoekbalk op `/voorbereiden`:** de eigen lookup weggegooid en vervangen door **exact dezelfde universele PDOK-autosuggest** als het aanmeldformulier/`opdracht.html`; lost de toevoeging-bug op (*2512 EX 77 p* → PDOK "Prinsegracht 77P" met "P" als **huisletter**, niet als toevoeging) en laat geen stale resultaten meer staan na een mislukte zoekopdracht. **FIX 2 — "Job A" hernoemd:** knop "Job A nu draaien" → **"Handmatig synchroniseren"**, "Laatste Job A" → **"Laatste synchronisatie"**; in dit document zijn de werknamen **"Job A"/"Job B" geretired** ("automatische dossiervoorbereiding (met handmatige synchronisatie)" resp. "upload-module") — interne endpoint/bestandsnaam blijven; historische versiehistorie-regels ongemoeid. **ONDERZOEK 4 (alleen rapport):** `bewijsdocument.py` is een getrouwe port van `pdf_generator.py` v4.8 — layout, secties, kaart en teksten visueel identiek; verschillen alleen onder de motorkap (bytes i.p.v. bestand, logging, luchtfoto-cache). Eén inhoudelijk punt: de regel **"BAG Nummeraanduiding ID"** is nu leeg (de BAG-adapter levert dat veld niet) — kandidaat voor herstel. Nieuwe smoke-test `test_agenda_sync.py`; `test_dashboard`/`test_job_voorbereiden` omgezet naar de agenda-bron; alle suites groen. Klant-facing aanmeldformulier niet aangeraakt. H0a/H5a/H6/H6.2/H7.2/H7.3/H10 + module-tabel bijgewerkt. Versie 4.31 → 4.32. |
 
 | 4.33 | 8 juni 2026 | **Dashboard-pijplijn met levenscyclus-fases (H5a) + sorteren + twee fixes (admin-portal PR #23).** De pijplijn toont nu per dossier een **fase-kolom** met de stappen uit de dossier-levenscyclus (H5a §5a.3, stap 4–13 — exact overgenomen, bron van waarheid). Nieuwe module `fase.py`: **auto-detectie** van wat we kunnen weten uit de bestaande bronnen (te voorbereiden → stap 4, voorbereid → stap 5 via de voorbereid-registry, afschrift binnen → stap 9 via de afschrift-lifecycle); de overige stappen (opname, VABI, BRL-controle, upload, archiveren, betaling) hebben nog **geen databron** → die zet Kevin **handmatig** een stap verder via een dropdown per dossier, **persistent** via core.storage (`dossier_voortgang.json`, gekoppeld aan de adres-sleutel/token). Voor stappen vóór stap 4 (lead/offerte) is bewust **geen** tracking verzonnen. **Precedentie = `max(auto, handmatig)`:** een auto-mijlpaal duwt de fase alleen vooruit; een handmatig gezette fase wordt nooit stilletjes teruggezet (de dropdown blokkeert opties onder de aangetoonde auto-ondergrens). De kolommen **adres / opname / fase** zijn **client-side sorteerbaar**. **Fix 1 (blanco-adres, 12 jun):** `agenda_sync.parse_locatie` veel robuuster (postcode mag middenin staan, komma optioneel, huisletter mét/zónder spatie, woonplaats optioneel, straatnaam met cijfers); lukt parsen écht niet → de ruwe locatie wordt bewaard en het dashboard toont een nette placeholder i.p.v. een lege regel. **Fix 2 (hangt-op):** wordt nu afgeleid uit de **wacht-op van de huidige fase** i.p.v. een verwarrende vaste tekst (een te-voorbereiden dossier wacht op de *automatische voorbereiding*, niet op Kevin); blijft handmatig bewerkbaar, nu persistent voor álle opnames (ook agenda/Calendly) via de voortgang-store. Nieuwe `test_fase.py`; `test_agenda_sync` uitgebreid (parse-robuustheid + `locatie_raw`); `test_dashboard` omgezet naar het fase-model; alle suites groen. Klant-facing aanmeldformulier niet aangeraakt. H5a.5/H6 bijgewerkt (pijplijn toont nu de levenscyclus-fases, auto + handmatig). Versie 4.32 → 4.33. |
+
+| 4.34 | 8 juni 2026 | **F4 — centrale dossier-datalaag gebouwd (admin-portal PR #24).** Het **dossier** is voortaan de kern-entiteit van de admin-portal (niet meer de agenda), met een **klantregister** eronder — twee persistente stores via core.storage (`klanten.json` + `dossiers.json`). **Klant** (`klanten.py`): voornaam/achternaam, e-mail, telefoon, `factuur_type` (particulier/zakelijk), makelaar, `bedrijf` (naam/adres/**KvK/BTW** = factuuradres) + opmerkingen — exact de velden van het aanmeldformulier (read-only onderzocht), zodat SnelStart later een plug-in is; één klant kan meerdere dossiers hebben (dedup op e-mail, anders naam+telefoon). **Dossier** (`dossiers.py`): `klant_id` + adres, **fase 1–13** (H5a), hangt_op, adviseur, dossiermap/OneDrive-url, gekoppelde agenda-afspraak en mijlpalen (voorbereid/afschrift); primaire sleutel `dossier_id` (een **lead** bestaat al vóór een VBO-ID), met adres-sleutel/VBO/event-id als match-indexen. **Twee manieren van aanmaken:** handmatig via de knop **"Nieuwe klant + dossier"** (kies/maak klant + universele PDOK-adres-zoekbalk + startfase, default lead; `POST /api/dossier/nieuw`) én automatisch via `agenda_sync.synchroniseer_dossiers()` die elke opname op **adres-sleutel/event-id** aan een bestaand dossier koppelt of een nieuw dossier op **fase 4** maakt (**geen dubbelen**; klant gekoppeld waar bekend). **Dashboard:** leest nu de dossier-store (alle dossiers, fases 1–13); de **status wordt uit de fase afgeleid** (mislukt/verschoven/afschrift = vlaggen) — geen tegenstrijdigheid meer; klant zichtbaar per rij; sorteren (adres/klant/opname/fase) + fase-dropdown + precedentie `max(auto, handmatig)` behouden; nieuw **klantregister**-overzicht. De voorbereiding (`job_voorbereiden`) en de afschrift-filer (`upload`) **spiegelen** hun mijlpaal naar het dossier. **Migratie** (eenmalig, idempotent): `dossiers.migreer()` bouwt de store uit `afspraken.json` + `voorbereid.json` + `afschriften.json` + `dossier_voortgang.json` — niets kwijt; de oude registries blijven als idempotentie-cache. **Buiten scope** (niet gebouwd): SnelStart-factuur, auto-instroom aanmeldformulier-leads, koepel-upload increment 2. Klant-facing aanmeldformulier niet aangeraakt. Nieuwe tests `test_klanten`/`test_dossiers`/`test_migratie`; `test_fase`/`test_dashboard` omgezet; alle 20 suites groen. H4.2/H5a.5/H6/H9.5/H10 (F4) bijgewerkt. Versie 4.33 → 4.34. |
 
 *— Einde document —*
