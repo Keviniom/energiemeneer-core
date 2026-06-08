@@ -30,10 +30,12 @@ def haal_agenda_op(start_iso: str, eind_iso: str) -> list[dict[str, Any]]:
         eind_iso: einde van de periode als ISO-tijd (UTC).
 
     Returns:
-        Lijst van dicts met ``onderwerp``, ``start``, ``eind`` (UTC-ISO,
-        eindigend op ``Z``), ``hele_dag`` en ``status`` (de Outlook
-        ``showAs``-waarde: ``busy``/``free``/``tentative``/…). Er wordt
-        **niet** gefilterd — de aanroeper bepaalt zelf wat relevant is.
+        Lijst van dicts met ``id`` (de Outlook event-id), ``onderwerp``,
+        ``start``, ``eind`` (UTC-ISO, eindigend op ``Z``), ``hele_dag``,
+        ``status`` (de Outlook ``showAs``-waarde: ``busy``/``free``/
+        ``tentative``/…) en ``locatie`` (de ``location.displayName`` — bij
+        opname-afspraken het adres). Er wordt **niet** gefilterd — de
+        aanroeper bepaalt zelf wat relevant is.
 
     Raises:
         ValueError: start- of eindtijd ontbreekt.
@@ -47,7 +49,7 @@ def haal_agenda_op(start_iso: str, eind_iso: str) -> list[dict[str, Any]]:
         params={
             "startDateTime": start_iso,
             "endDateTime": eind_iso,
-            "$select": "subject,start,end,isAllDay,showAs",
+            "$select": "id,subject,start,end,isAllDay,showAs,location",
             "$top": 100,
             "$orderby": "start/dateTime",
         },
@@ -63,11 +65,13 @@ def haal_agenda_op(start_iso: str, eind_iso: str) -> list[dict[str, Any]]:
     for ev in resp.json().get("value", []):
         afspraken.append(
             {
+                "id": ev.get("id", ""),
                 "onderwerp": ev.get("subject", ""),
                 "start": _naar_utc_iso(ev.get("start", {}).get("dateTime", "")),
                 "eind": _naar_utc_iso(ev.get("end", {}).get("dateTime", "")),
                 "hele_dag": ev.get("isAllDay", False),
                 "status": ev.get("showAs", ""),
+                "locatie": (ev.get("location", {}) or {}).get("displayName", ""),
             }
         )
     return afspraken
