@@ -1,4 +1,4 @@
-"""Microsoft To Do via Microsoft Graph — een taak aanmaken.
+"""Microsoft To Do via Microsoft Graph — taken aanmaken én lezen.
 
 Bron: ``aanmeldformulier_tool/ms_graph.py`` (``maak_todo_taak``). Generiek
 gehouden: de aanroeper levert de lijstnaam en taaknaam aan — geen vaste
@@ -6,6 +6,10 @@ lijstnamen ingebakken.
 
 De "naam al bezet → _1/_2"-logica zit ook hier in de core, om per ongeluk
 dubbele taken voor hetzelfde dossier te voorkomen.
+
+De lees-functies (:func:`lees_lijsten`, :func:`lees_taken`) zijn **alleen-lezen**
+en maken — anders dan :func:`maak_taak` — **geen** lijst aan als die ontbreekt
+(een onbekende lijst geeft simpelweg een lege lijst taken terug).
 
 Zie BOUWPLAN.md, Module 6 (onderdeel 4).
 """
@@ -65,6 +69,82 @@ def maak_taak(lijst_naam: str, taak_naam: str, deadline: str | None = None) -> d
         "taak": unieke_naam,
         "deadline": deadline,
     }
+
+
+# ── Lezen (alleen-lezen) ─────────────────────────────────────────────────────
+def lees_lijsten() -> list[dict[str, Any]]:
+    """Geef alle To Do-lijsten terug als ``[{id, naam}]`` (alleen-lezen).
+
+    Raises:
+        RuntimeError: Graph geeft een fout.
+    """
+    resp = _client.get("/me/todo/lists")
+    if resp.status_code != 200:
+        raise RuntimeError(
+            f"To Do-lijsten ophalen mislukt (HTTP {resp.status_code}): {resp.text[:300]}"
+        )
+    return [{"id": l.get("id", ""), "naam": l.get("displayName", "")}
+            for l in resp.json().get("value", [])]
+
+
+def _vind_lijst_id(naam: str) -> str | None:
+    """Zoek het id van een lijst op naam (hoofdletter-ongevoelig). Geen aanmaak;
+    returnt ``None`` als de lijst niet bestaat."""
+    if not naam or not naam.strip():
+        return None
+    for lijst in lees_lijsten():
+        if lijst["naam"].lower() == naam.strip().lower():
+            return lijst["id"]
+    return None
+
+
+def lees_taken(lijst_naam: str, alleen_open: bool = True, max: int = 100) -> list[dict[str, Any]]:
+    """Lees de taken uit een To Do-lijst op naam (alleen-lezen).
+
+    Args:
+        lijst_naam: naam van de lijst (bijv. "Energielabels"). Bestaat de lijst
+            niet, dan is het resultaat een lege lijst — er wordt **niets**
+            aangemaakt.
+        alleen_open: alleen niet-afgeronde taken (status ≠ ``completed``).
+        max: maximaal aantal taken (Graph ``$top``).
+
+    Returns:
+        Lijst van dicts: ``titel``, ``status``, ``deadline`` (ISO of ""),
+        ``notitie`` (body-tekst), ``aangemaakt`` en ``id``.
+
+    Raises:
+        RuntimeError: Graph geeft een fout (bij het ophalen van de lijsten/taken).
+    """
+    lijst_id = _vind_lijst_id(lijst_naam)
+    if not lijst_id:
+        return []
+
+    resp = _client.get(
+        f"/me/todo/lists/{lijst_id}/tasks",
+        params={"$top": int(max),
+                "$select": "id,title,status,dueDateTime,body,createdDateTime,importance"},
+    )
+    if resp.status_code != 200:
+        raise RuntimeError(
+            f"To Do-taken ophalen mislukt (HTTP {resp.status_code}): {resp.text[:300]}"
+        )
+
+    taken = []
+    for t in resp.json().get("value", []):
+        status = t.get("status", "")
+        if alleen_open and status == "completed":
+            continue
+        body = (t.get("body") or {}).get("content", "") or ""
+        taken.append({
+            "id": t.get("id", ""),
+            "titel": t.get("title", "") or "",
+            "status": status,
+            "belangrijk": t.get("importance") == "high",
+            "deadline": (t.get("dueDateTime") or {}).get("dateTime", "") or "",
+            "notitie": body.strip(),
+            "aangemaakt": t.get("createdDateTime", "") or "",
+        })
+    return taken
 
 
 # ── Hulpjes ──────────────────────────────────────────────────────────────────
