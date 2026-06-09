@@ -135,3 +135,62 @@ def test_maak_taak_aanmaken_fout(monkeypatch):
     _vang_request(monkeypatch, responder)
     with pytest.raises(RuntimeError, match="Taak aanmaken mislukt"):
         todo.maak_taak("Opnames", "Taak")
+
+
+# ── Lezen (alleen-lezen) ─────────────────────────────────────────────────────
+def test_lees_lijsten(monkeypatch):
+    _vang_request(monkeypatch, lambda m, u, j: _resp(json_data={"value": [
+        {"id": "L1", "displayName": "Energielabels"}, {"id": "L2", "displayName": "Privé"}]}))
+    lijsten = todo.lees_lijsten()
+    assert lijsten == [{"id": "L1", "naam": "Energielabels"}, {"id": "L2", "naam": "Privé"}]
+
+
+def test_lees_taken_uit_lijst_op_naam(monkeypatch):
+    def responder(method, url, json):
+        if url.endswith("/me/todo/lists"):
+            return _resp(json_data={"value": [{"id": "L1", "displayName": "Energielabels"}]})
+        if "/tasks" in url:
+            return _resp(json_data={"value": [
+                {"id": "t1", "title": "Dorpsstraat 12, Ergens", "status": "inProgress",
+                 "dueDateTime": {"dateTime": "2026-06-12T00:00:00", "timeZone": "Europe/Amsterdam"},
+                 "body": {"content": "wacht op opname", "contentType": "text"},
+                 "createdDateTime": "2026-06-01T10:00:00Z", "importance": "high"},
+                {"id": "t2", "title": "Klaar dossier", "status": "completed",
+                 "body": {"content": "", "contentType": "text"}, "createdDateTime": "2026-05-01T10:00:00Z"},
+            ]})
+        return _resp(status=404, text="?")
+    todo._vang = _vang_request(monkeypatch, responder)
+    taken = todo.lees_taken("energielabels")   # hoofdletter-ongevoelig
+    assert len(taken) == 1                     # 'completed' eruit gefilterd
+    assert taken[0]["titel"] == "Dorpsstraat 12, Ergens"
+    assert taken[0]["status"] == "inProgress" and taken[0]["belangrijk"] is True
+    assert taken[0]["deadline"].startswith("2026-06-12") and taken[0]["notitie"] == "wacht op opname"
+
+
+def test_lees_taken_inclusief_afgerond(monkeypatch):
+    def responder(method, url, json):
+        if url.endswith("/me/todo/lists"):
+            return _resp(json_data={"value": [{"id": "L1", "displayName": "Energielabels"}]})
+        return _resp(json_data={"value": [
+            {"id": "t1", "title": "A", "status": "completed", "createdDateTime": "x"},
+            {"id": "t2", "title": "B", "status": "notStarted", "createdDateTime": "y"}]})
+    _vang_request(monkeypatch, responder)
+    assert len(todo.lees_taken("Energielabels", alleen_open=False)) == 2
+
+
+def test_lees_taken_onbekende_lijst_geeft_leeg_geen_aanmaak(monkeypatch):
+    calls = _vang_request(monkeypatch, lambda m, u, j: _resp(json_data={"value": [
+        {"id": "L1", "displayName": "Iets anders"}]}))
+    assert todo.lees_taken("Energielabels") == []
+    # Geen POST (geen lijst aangemaakt) — strikt alleen-lezen.
+    assert all(c["method"] != "POST" for c in calls)
+
+
+def test_lees_taken_fout(monkeypatch):
+    def responder(method, url, json):
+        if url.endswith("/me/todo/lists"):
+            return _resp(json_data={"value": [{"id": "L1", "displayName": "Energielabels"}]})
+        return _resp(status=500, text="boem")
+    _vang_request(monkeypatch, responder)
+    with pytest.raises(RuntimeError, match="To Do-taken ophalen mislukt"):
+        todo.lees_taken("Energielabels")
