@@ -19,6 +19,7 @@ import base64
 import binascii
 import logging
 
+from energiemeneer_core import environment
 from energiemeneer_core.graph_api import _client
 
 _log = logging.getLogger(__name__)
@@ -46,7 +47,9 @@ def stuur_mail(
         opslaan_in_verzonden: bewaar de mail in "Verzonden items" (standaard).
 
     Returns:
-        ``True`` als Microsoft de mail heeft geaccepteerd.
+        ``True`` als Microsoft de mail heeft geaccepteerd. ``False`` als mail
+        via de policy-laag uitstaat (``mail_enabled()`` is ``False``): dan wordt
+        er niets verstuurd en alleen een logregel geschreven.
 
     Raises:
         ValueError: geen geldige ontvanger.
@@ -55,6 +58,13 @@ def stuur_mail(
     ontvangers = _als_lijst(naar)
     if not ontvangers:
         raise ValueError("Minstens één ontvanger (naar) is verplicht")
+
+    if not environment.mail_enabled():
+        _log.info(
+            "MAIL_ENABLED uit — mail aan %s overgeslagen (%s)",
+            ", ".join(ontvangers), onderwerp,
+        )
+        return False
 
     bericht: dict = {
         "subject": onderwerp or "",

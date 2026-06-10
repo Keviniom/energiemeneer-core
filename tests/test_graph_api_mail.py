@@ -10,6 +10,8 @@ from energiemeneer_core.graph_api import mail
 @pytest.fixture(autouse=True)
 def _altijd_geldig_token(monkeypatch):
     monkeypatch.setattr(graph_auth, "haal_graph_token", lambda: "AT-test")
+    # Verzend-tests draaien met mail expliciet AAN; de "uit"-test zet zelf om.
+    monkeypatch.setenv("MAIL_ENABLED", "1")
     yield
 
 
@@ -84,6 +86,14 @@ def test_stuur_mail_eist_ontvanger(monkeypatch):
 def test_stuur_mail_accepteert_200(monkeypatch):
     _vang_request(monkeypatch, _resp(status=200))
     assert mail.stuur_mail("a@x.nl", "x", "y") is True
+
+
+def test_stuur_mail_overgeslagen_als_mail_uit(monkeypatch):
+    # Mail uit via de policy-laag: niets versturen, False teruggeven.
+    monkeypatch.setenv("MAIL_ENABLED", "0")
+    calls = _vang_request(monkeypatch, _resp(status=202))
+    assert mail.stuur_mail("a@x.nl", "x", "y") is False
+    assert calls == []  # geen enkele HTTP-aanroep gedaan
 
 
 def test_stuur_mail_fout(monkeypatch):
