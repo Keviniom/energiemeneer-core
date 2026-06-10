@@ -14,6 +14,10 @@ Regels:
 - storage_root() is een echte rem (bestemming), geen vlag.
 - upload/mail kennen geen 'test'-bestemming (EP-Online / echte mailboxen zijn
   prod of niets): in non-prod uit, tenzij je ze bewust tegen een sandbox test.
+- use_fake_clients() bepaalt of de externe clients (Microsoft Graph, BAG,
+  EP-Online) door fakes worden vervangen: non-prod -> fake, prod -> echt,
+  tenzij USE_FAKE_CLIENTS expliciet gezet is (dev/test bewust tegen een
+  echte sandbox draaien).
 """
 
 import os
@@ -53,21 +57,60 @@ def scheduler_enabled() -> bool:
     return _flag("SCHEDULER_ENABLED")
 
 
+def use_fake_clients() -> bool:
+    """Of de externe clients (Graph/BAG/EP-Online) door fakes vervangen worden.
+
+    Leeg -> afgeleid van env (non-prod = fake, prod = echt). Expliciet gezet
+    via ``USE_FAKE_CLIENTS`` -> gehonoreerd, zodat je dev/test bewust tegen een
+    echte (sandbox) tenant kunt draaien (``USE_FAKE_CLIENTS=0``).
+    """
+    raw = os.environ.get("USE_FAKE_CLIENTS")
+    if raw is None or raw.strip() == "":
+        return not is_production()
+    return raw.strip().lower() in _TRUE
+
+
+def storage_root_override() -> str | None:
+    """De env-gestuurde storage-bestemming, of ``None`` voor autodetectie.
+
+    Precedentie:
+      1. expliciete ``STORAGE_ROOT`` (elke omgeving),
+      2. non-prod: ``STORAGE_ROOT_TEST`` (alleen als gezet),
+      3. anders ``None`` -> ``storage.vind_data_dir()`` valt terug op zijn eigen
+         autodetectie (Railway-volume, ``ENERGIEMENEER_DATA_DIR``, cwd).
+
+    Pure env-leesfunctie: importeert ``storage`` NIET, zodat environment
+    afhankelijkheidsarm blijft en er geen circulaire import ontstaat.
+    """
+    expliciet = os.environ.get("STORAGE_ROOT", "").strip()
+    if expliciet:
+        return expliciet
+    if not is_production():
+        test = os.environ.get("STORAGE_ROOT_TEST", "").strip()
+        if test:
+            return test
+    return None
+
+
 def storage_root() -> str:
-    if is_production():
-        root = os.environ.get("STORAGE_ROOT")
-        if not root:
-            raise RuntimeError(
-                "STORAGE_ROOT is verplicht in productie en is niet gezet."
-            )
-        return root
-    # non-prod: dwing een aparte test-map af (per omgeving overschrijven)
-    return os.environ.get("STORAGE_ROOT_TEST", "./data-test")
+    """De effectieve storage-root (voor describe()/banner()).
+
+    Geeft de env-override als die er is, anders het pad dat ``storage`` zélf
+    bepaalt via zijn autodetectie. De storage-import is bewust lazy zodat
+    environment afhankelijkheidsarm blijft en er geen circulaire import op
+    moduleniveau ontstaat.
+    """
+    override = storage_root_override()
+    if override:
+        return override
+    from energiemeneer_core import storage  # lazy: vermijd circulaire import
+    return storage.vind_data_dir()
 
 
 def describe() -> dict:
     return {
         "env": current_env(),
+        "clients": "fake" if use_fake_clients() else "echt",
         "storage_root": storage_root(),
         "uploads": uploads_enabled(),
         "mail": mail_enabled(),
@@ -80,6 +123,7 @@ def banner() -> str:
     return (
         "-" * 48 + "\n"
         f"  De Energiemeneer - omgeving: {d['env'].upper()}\n"
+        f"  clients      : {'FAKE' if d['clients'] == 'fake' else 'echt'}\n"
         f"  storage_root : {d['storage_root']}\n"
         f"  uploads      : {'AAN' if d['uploads'] else 'uit'}\n"
         f"  mail         : {'AAN' if d['mail'] else 'uit'}\n"
