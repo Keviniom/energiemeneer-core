@@ -18,6 +18,8 @@ from typing import Any
 
 import requests
 
+from energiemeneer_core import environment
+
 _log = logging.getLogger(__name__)
 
 _BAG_BASE = "https://api.bag.kadaster.nl/lvbag/individuelebevragingen/v2"
@@ -57,6 +59,9 @@ def zoek_adres(
         raise ValueError("Postcode is verplicht")
     if huisnummer is None or str(huisnummer).strip() == "":
         raise ValueError("Huisnummer is verplicht")
+
+    if environment.use_fake_clients():
+        return _fake_adres(pc, huisnummer, huisletter, toevoeging)
 
     params: dict[str, str] = {
         "postcode": pc,
@@ -108,6 +113,8 @@ def vrij_zoeken(zoektekst: str, max: int = 5) -> list[dict[str, Any]]:
     q = (zoektekst or "").strip()
     if not q:
         return []
+    if environment.use_fake_clients():
+        return _fake_suggesties(q, max)
     params = {
         "q": q,
         "fq": "type:adres",
@@ -229,3 +236,43 @@ def _api_key_bag() -> str:
             f"(zie pyproject of secrets-store)."
         )
     return key
+
+
+# ── Fakes (dev/test zonder echte BAG/PDOK-connectie) ─────────────────────────
+
+
+def _fake_adres(
+    pc: str, huisnummer: int | str, huisletter: str | None, toevoeging: str | None
+) -> dict[str, Any]:
+    """Eén realistisch fixture-adres dat de opgevraagde sleutels echo't."""
+    _log.info("[FAKE] BAG zoek_adres %s %s — fixture-adres", pc, huisnummer)
+    return {
+        "straatnaam": "Teststraat",
+        "huisnummer": huisnummer,
+        "huisletter": huisletter,
+        "toevoeging": toevoeging,
+        "postcode": pc,
+        "woonplaats": "Teststad",
+        "vbo_id": "0363010000000001",
+        "pand_ids": ["0363100000000001"],
+        "bouwjaar": 1985,
+        "oppervlakte": 120,
+    }
+
+
+def _fake_suggesties(zoektekst: str, max: int) -> list[dict[str, Any]]:
+    """Eén minimale adres-suggestie die qua structuur met PDOK matcht."""
+    _log.info("[FAKE] BAG vrij_zoeken %r — fixture-suggestie", zoektekst)
+    return [
+        {
+            "weergavenaam": f"Teststraat 8, 1234 AB Teststad ({zoektekst})",
+            "straatnaam": "Teststraat",
+            "huisnummer": 8,
+            "huis_nlt": "8",
+            "postcode": "1234AB",
+            "woonplaats": "Teststad",
+            "vbo_id": "0363010000000001",
+            "nummeraanduiding_id": "0363200000000001",
+            "pand_id": "0363100000000001",
+        }
+    ][:max]
