@@ -12,6 +12,10 @@ def _isoleer_storage(tmp_path, monkeypatch):
     monkeypatch.setattr(storage, "_data_dir_cache", None)
     storage._file_locks.clear()
     monkeypatch.setenv(storage._ENV_FALLBACK, str(tmp_path))
+    # Override-env-vars wissen zodat de autodetectie deterministisch blijft.
+    monkeypatch.delenv("STORAGE_ROOT", raising=False)
+    monkeypatch.delenv("STORAGE_ROOT_TEST", raising=False)
+    monkeypatch.delenv("APP_ENV", raising=False)
     yield
 
 
@@ -71,3 +75,39 @@ def test_volume_pad_wint_van_env_var(monkeypatch, tmp_path):
 
 def test_pad_voor_bouwt_correct_pad(tmp_path):
     assert storage.pad_voor("a.json") == os.path.join(str(tmp_path), "a.json")
+
+
+# ── Override-precedentie (environment.storage_root_override) ──────────────────
+
+
+def test_storage_root_wint_van_env_fallback_en_volume(monkeypatch, tmp_path):
+    # Expliciete STORAGE_ROOT moet winnen van zowel volume als ENERGIEMENEER_DATA_DIR.
+    volume = tmp_path / "volume"
+    volume.mkdir()
+    monkeypatch.setattr(storage, "_VOLUME_PADEN", (str(volume),))
+    monkeypatch.setattr(storage, "_data_dir_cache", None)
+    monkeypatch.setenv("STORAGE_ROOT", str(tmp_path / "expliciet"))
+    assert storage.vind_data_dir() == str(tmp_path / "expliciet")
+
+
+def test_storage_root_test_wint_in_nonprod(monkeypatch, tmp_path):
+    monkeypatch.setattr(storage, "_data_dir_cache", None)
+    monkeypatch.setenv("APP_ENV", "test")  # non-prod
+    monkeypatch.setenv("STORAGE_ROOT_TEST", str(tmp_path / "testmap"))
+    assert storage.vind_data_dir() == str(tmp_path / "testmap")
+
+
+def test_storage_root_test_genegeerd_in_prod(monkeypatch, tmp_path):
+    # In prod telt STORAGE_ROOT_TEST niet: terugval op de autodetectie (env-fallback).
+    monkeypatch.setattr(storage, "_data_dir_cache", None)
+    monkeypatch.setenv("APP_ENV", "prod")
+    monkeypatch.setenv("STORAGE_ROOT_TEST", str(tmp_path / "testmap"))
+    monkeypatch.setenv(storage._ENV_FALLBACK, str(tmp_path / "echt"))
+    assert storage.vind_data_dir() == str(tmp_path / "echt")
+
+
+def test_geen_override_valt_terug_op_autodetectie(monkeypatch, tmp_path):
+    # Zonder override blijft de bewezen autodetectie (env-fallback) intact.
+    monkeypatch.setattr(storage, "_data_dir_cache", None)
+    monkeypatch.setenv(storage._ENV_FALLBACK, str(tmp_path / "auto"))
+    assert storage.vind_data_dir() == str(tmp_path / "auto")

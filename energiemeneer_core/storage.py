@@ -12,6 +12,8 @@ import os
 import threading
 from typing import Any
 
+from energiemeneer_core import environment
+
 _log = logging.getLogger(__name__)
 
 _VOLUME_PADEN = ("/app/data", "/data/volume", "/data", "/app/volume")
@@ -27,6 +29,8 @@ def vind_data_dir() -> str:
     """Geef het pad naar de datamap.
 
     Volgorde:
+      0. De env-override uit :func:`energiemeneer_core.environment.storage_root_override`
+         (``STORAGE_ROOT`` / non-prod ``STORAGE_ROOT_TEST``) — de policy-laag wint.
       1. Eerste bestaande pad uit ``/app/data``, ``/data/volume``, ``/data``,
          ``/app/volume`` (Railway-volume-conventie).
       2. Env-var ``ENERGIEMENEER_DATA_DIR``.
@@ -39,6 +43,10 @@ def vind_data_dir() -> str:
         return _data_dir_cache
     with _dir_cache_lock:
         if _data_dir_cache is not None:
+            return _data_dir_cache
+        override = environment.storage_root_override()
+        if override:
+            _data_dir_cache = override
             return _data_dir_cache
         for pad in _VOLUME_PADEN:
             if os.path.isdir(pad):
