@@ -24,6 +24,7 @@ from typing import Any
 
 import requests
 
+from energiemeneer_core import environment
 from energiemeneer_core.graph_api import _client
 
 _log = logging.getLogger(__name__)
@@ -144,6 +145,16 @@ def _upload_klein(lokaal_pad: str, onedrive_pad: str) -> None:
 
 
 def _upload_groot(lokaal_pad: str, onedrive_pad: str, grootte: int) -> None:
+    # De chunked upload gaat via een directe requests.put naar de sessie-URL —
+    # buiten _client (en dus buiten de fake-swap) om. In fake-modus daarom hier
+    # afvangen, zodat er geen echte netwerk-call naar een nep-URL ontstaat.
+    if environment.use_fake_clients():
+        _log.info(
+            "[FAKE] grote upload %s (%d bytes) — overgeslagen (geen upload-sessie)",
+            onedrive_pad, grootte,
+        )
+        return
+
     # Stap 1: vraag een upload-sessie aan.
     resp = _client.post(
         f"/me/drive/root:/{onedrive_pad}:/createUploadSession",

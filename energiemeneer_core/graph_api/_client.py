@@ -16,7 +16,8 @@ from typing import Any
 
 import requests
 
-from energiemeneer_core import graph_auth
+from energiemeneer_core import environment, graph_auth
+from energiemeneer_core.graph_api import _fake_client
 
 _log = logging.getLogger(__name__)
 
@@ -52,6 +53,12 @@ def verzoek(
     Raises:
         RuntimeError: Microsoft Graph is niet bereikbaar.
     """
+    if environment.use_fake_clients():
+        return _fake_client.verzoek(
+            methode, pad, params=params, json=json, data=data,
+            headers_extra=headers_extra, timeout=timeout,
+        )
+
     url = _GRAPH_BASE + pad
 
     def _doe(token: str) -> requests.Response:

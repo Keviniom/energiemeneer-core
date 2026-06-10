@@ -35,9 +35,12 @@ from typing import Any
 
 import requests
 
-from energiemeneer_core import storage
+from energiemeneer_core import environment, storage
 
 _log = logging.getLogger(__name__)
+
+# Fake access-token voor dev/test (use_fake_clients): niet-leeg, geen netwerk.
+_FAKE_ACCESS_TOKEN = "fake-access-token"
 
 # ── Env-vars (geen geheimen — client-id/tenant-id staan open in Meesterbrein H9.2) ──
 _ENV_CLIENT_ID = "MS_CLIENT_ID"
@@ -113,6 +116,9 @@ def haal_graph_token() -> str:
             ongeldig (dan is ook een noodmelding verstuurd), óf Microsoft is
             tijdelijk onbereikbaar.
     """
+    if environment.use_fake_clients():
+        return _FAKE_ACCESS_TOKEN
+
     nu = time.time()
     token = _access_cache.get("token")
     if token and nu < _access_cache.get("verloopt_op", 0.0) - _VERLOOP_MARGE_SEC:
@@ -140,6 +146,17 @@ def start_device_login() -> dict[str, Any]:
     Raises:
         RuntimeError: Microsoft gaf geen device code terug.
     """
+    if environment.use_fake_clients():
+        _log.info("[FAKE] device-login gestart — geen echte Microsoft-inlog nodig")
+        return {
+            "user_code": "FAKE-CODE",
+            "verification_uri": "https://fake.local/devicelogin",
+            "device_code": "fake-device-code",
+            "expires_in": 900,
+            "interval": 5,
+            "message": "[FAKE] In dev/test is geen echte inlog nodig.",
+        }
+
     try:
         r = requests.post(
             _devicecode_endpoint(),
@@ -178,6 +195,10 @@ def voltooi_device_login(
     """
     if not device_code or not str(device_code).strip():
         raise ValueError("device_code is verplicht")
+
+    if environment.use_fake_clients():
+        _log.info("[FAKE] device-login voltooid — direct geslaagd, geen tokens bewaard")
+        return True
 
     deadline = time.time() + max_wachten_sec
     while time.time() < deadline:
