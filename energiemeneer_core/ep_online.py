@@ -15,6 +15,7 @@ from typing import Any
 
 import requests
 
+from energiemeneer_core import environment
 from energiemeneer_core.bag import normaliseer_postcode
 
 _log = logging.getLogger(__name__)
@@ -36,6 +37,8 @@ def zoek_op_vbo(vbo_id: str) -> dict[str, Any] | None:
     """
     if not vbo_id or not str(vbo_id).strip():
         raise ValueError("VBO-ID is verplicht")
+    if environment.use_fake_clients():
+        return _fake_label(f"VBO {vbo_id}")
     return _ep_get(f"/PandEnergielabel/AdresseerbaarObject/{vbo_id}")
 
 
@@ -57,6 +60,8 @@ def zoek_op_adres(postcode: str, huisnummer: int | str) -> dict[str, Any] | None
         raise ValueError("Postcode is verplicht")
     if huisnummer is None or str(huisnummer).strip() == "":
         raise ValueError("Huisnummer is verplicht")
+    if environment.use_fake_clients():
+        return _fake_label(f"{pc} {huisnummer}")
     return _ep_get(
         "/PandEnergielabel/Adres",
         params={"postcode": pc, "huisnummer": str(huisnummer)},
@@ -104,3 +109,18 @@ def _api_key_ep() -> str:
             f"EP-Online API-key ontbreekt: zet env-var {_ENV_KEY_EP}"
         )
     return key
+
+
+# ── Fake (dev/test zonder echte EP-Online-connectie) ─────────────────────────
+
+
+def _fake_label(sleutel: str) -> dict[str, Any]:
+    """Eén minimale, realistische label-registratie (geen netwerk/API-key)."""
+    _log.info("[FAKE] EP-Online %s — fixture-label", sleutel)
+    return {
+        "label": "A",
+        "registratiedatum": "2026-01-01",
+        "opnamedatum": "2026-01-01",
+        "geldig_tot": "2036-01-01",
+        "status": "[FAKE] geregistreerd",
+    }
