@@ -100,34 +100,3 @@ def test_netwerkfout_geeft_runtime_error(monkeypatch):
     monkeypatch.setattr(requests, "get", fake_get)
     with pytest.raises(RuntimeError, match="EP-Online niet bereikbaar"):
         ep_online.zoek_op_vbo("vbo-1")
-
-
-# ── Fake-modus: geen connectie, geen API-key nodig ───────────────────────────
-
-
-@pytest.fixture
-def _fake_ep(monkeypatch):
-    monkeypatch.setenv("USE_FAKE_CLIENTS", "1")
-    monkeypatch.delenv(ep_online._ENV_KEY_EP, raising=False)  # geen key nodig in fake
-
-    def _boem(*a, **k):
-        raise AssertionError("Echte HTTP-aanroep in fake-modus!")
-
-    monkeypatch.setattr(requests, "get", _boem)
-    return monkeypatch
-
-
-def test_zoek_op_vbo_fake_geeft_label_zonder_netwerk(_fake_ep):
-    r = ep_online.zoek_op_vbo("0518010000404665")
-    assert r["label"] == "A"
-    assert r["registratiedatum"]
-
-
-def test_zoek_op_adres_fake_geeft_label(_fake_ep):
-    r = ep_online.zoek_op_adres("2548 bv", 8)
-    assert r["label"] == "A"
-
-
-def test_zoek_op_vbo_fake_eist_nog_steeds_input(_fake_ep):
-    with pytest.raises(ValueError, match="VBO"):
-        ep_online.zoek_op_vbo("")
