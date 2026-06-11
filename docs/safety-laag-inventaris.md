@@ -15,15 +15,17 @@
   in `_client.verzoek()`; auth gestubd in `graph_auth` (token + device-login);
   OneDrive >4 MB-carve-out; **stateful OneNote** zodat `kopieer_sjabloonpagina`
   end-to-end draait. Dev/test heeft géén Microsoft 365-connectie meer nodig.
-- **Fakes voor de externe core-reads:** `bag.zoek_adres`/`vrij_zoeken` en
-  `ep_online.zoek_op_vbo`/`zoek_op_adres` geven in fake-modus realistische
-  fixtures, zonder API-key of netwerk.
+- **BAG/PDOK en EP-Online draaien uitsluitend via de echte client** —
+  read-only adres-/labellookups, dus géén fake nodig (geen schrijfacties, geen
+  prod-risico). In tests worden ze gefaket via HTTP-mocks (gemockte
+  `requests.get`), niet via `use_fake_clients()`.
 - **`mail_enabled()`** aangehaakt in `stuur_mail` (rem #1).
 - **`storage_root()`** gereconcilieerd met `vind_data_dir()` (rem #7–9): override
   → anders de bestaande autodetectie. Zie aandachtspunt A (opgelost: wrappen).
 
 Tests draaien standaard op het **echte** pad (`tests/conftest.py` zet
-`USE_FAKE_CLIENTS=0`); fake-tests zetten zelf `=1`. Volledige suite groen.
+`USE_FAKE_CLIENTS=0`); de enige tests die zelf `=1` zetten zijn nu de
+M365-fake-tests (`tests/test_fake_client.py`). Volledige suite groen.
 
 ## Kernbevinding (lees dit eerst)
 
@@ -86,11 +88,12 @@ guard rond de daadwerkelijke koepel-upload.
 
 ### 3DBAG- en Overpass-reads horen in admin-portal, niet in core
 
-De fakes in deze core-push dekken alleen de externe reads die **in core** leven
-(BAG/PDOK en EP-Online). De **3DBAG-gebouwhoogte** en de **Overpass/OSM**-reads
+In core zijn er géén fakes (meer) voor de externe reads: BAG/PDOK en EP-Online
+draaien uitsluitend via hun echte client (read-only; in tests via HTTP-mocks).
+De **3DBAG-gebouwhoogte** en de **Overpass/OSM**-reads
 zitten in de admin-portal (`voorbereiden.py`), niet in deze repo. Ze faken hoort
-daarom thuis in de admin-portal-fase, ná deze core-release — zelfde aanpak als
-de BAG/EP-fakes (guard op publiek-functie-niveau achter `use_fake_clients()`).
+daarom thuis in de admin-portal-fase, ná deze core-release — met dezelfde
+read-only-afweging die we hier voor BAG/EP maakten.
 
 ## Twee aandachtspunten (beide afgehandeld)
 
@@ -118,7 +121,7 @@ Gebouwd in deze core-push (één component per commit):
 2. ✅ **Storage (#7,8,9):** `storage_root()` gereconcilieerd met
    `vind_data_dir()` (wrappen, niet ernaast).
 3. ✅ **Fake-client-modus:** `use_fake_clients()` + fake Graph-client (incl.
-   stateful OneNote) + fakes voor BAG/EP-Online.
+   stateful OneNote).
 
 Nog te doen (admin-portal-fase, ná de core-release):
 
