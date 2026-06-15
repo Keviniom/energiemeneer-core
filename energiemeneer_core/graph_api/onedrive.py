@@ -99,6 +99,34 @@ def web_url(pad: str) -> str:
     return ""
 
 
+def download_bestand(onedrive_pad: str, lokaal_pad: str) -> str:
+    """Download een OneDrive-bestand naar een lokaal pad.
+
+    Args:
+        onedrive_pad: volledig pad t.o.v. de OneDrive-root (incl. bestandsnaam).
+        lokaal_pad: doelpad op de lokale schijf.
+
+    Returns:
+        Het lokale pad waar het bestand is weggeschreven.
+
+    Raises:
+        ValueError: bronpad ontbreekt.
+        RuntimeError: bestand niet gevonden of Graph geeft een fout.
+    """
+    p = (onedrive_pad or "").strip("/")
+    if not p:
+        raise ValueError("onedrive_pad is verplicht")
+    resp = _client.get(f"/me/drive/root:/{p}:/content")
+    if resp.status_code not in (200, 201):
+        raise RuntimeError(
+            f"OneDrive-download mislukt ({resp.status_code}) voor {onedrive_pad}"
+        )
+    with open(lokaal_pad, "wb") as f:
+        f.write(resp.content)
+    _log.info("Bestand gedownload uit OneDrive: %s → %s", onedrive_pad, lokaal_pad)
+    return lokaal_pad
+
+
 def upload_bestand(lokaal_pad: str, onedrive_pad: str) -> dict[str, Any]:
     """Upload een lokaal bestand naar OneDrive.
 

@@ -205,3 +205,33 @@ def test_web_url_niet_gevonden_geeft_leeg(monkeypatch):
 
 def test_web_url_leeg_pad(monkeypatch):
     assert onedrive.web_url("") == ""
+
+
+# ── download_bestand ─────────────────────────────────────────────────────────
+
+
+def _resp_content(status=200, content=b""):
+    r = MagicMock(spec=requests.Response)
+    r.status_code = status
+    r.content = content
+    return r
+
+
+def test_download_bestand_schrijft_lokaal(monkeypatch, tmp_path):
+    calls = _vang_request(monkeypatch, lambda *a: _resp_content(200, b"%PDF-fake-bytes"))
+    doel = tmp_path / "label.pdf"
+    uit = onedrive.download_bestand("1. Werkmap/Energielabels/Straat 8/label.pdf", str(doel))
+    assert uit == str(doel)
+    assert doel.read_bytes() == b"%PDF-fake-bytes"
+    assert calls[-1]["url"].endswith(":/content")
+
+
+def test_download_bestand_eist_bronpad():
+    with pytest.raises(ValueError):
+        onedrive.download_bestand("", "/tmp/x.pdf")
+
+
+def test_download_bestand_fout(monkeypatch, tmp_path):
+    _vang_request(monkeypatch, lambda *a: _resp_content(404, b""))
+    with pytest.raises(RuntimeError):
+        onedrive.download_bestand("bestaat/niet.pdf", str(tmp_path / "x.pdf"))
